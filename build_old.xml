@@ -1,0 +1,477 @@
+<?xml version="1.0"?>
+
+<project name="Project" basedir="." default="clean">
+	<import file="/usr/share/tomcat6/bin/catalina-tasks.xml" />
+	<property file="build.properties" />
+	<property name="webapp.path" value="WebContent" />
+	<property name="tomcat.home" value="/usr/share/tomcat6" />
+	<property file="build.properties" />
+	<property name="src.dir" value="src" />
+	<property name="web.dir" value="WebContent" />
+	<property name="javadoc.dir" value="doc" />
+	<property name="lib.dir" value="lib" />
+	<property name="build.dir" value="build" />
+	<property name="name" value="Bookstore" />
+
+	<property name="manager.url" value="http://localhost:8080/manager/" />
+
+
+	<path id="master-classpath">
+		<fileset dir="${web.dir}/WEB-INF/lib">
+			<include name="*.jar" />
+		</fileset>
+		<fileset dir="/usr/share/tomcat6/lib">
+			<include name="*.jar" />
+		</fileset>
+		<pathelement path="${build.dir}" />
+	</path>
+
+	<path id="classpath.test">
+		<pathelement location="${dest.dir.classes}" />
+		<fileset dir="lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<!-- cobertura task definition -->
+	<path id="cobertura.classpath">
+		<fileset dir="${lib.dir}">
+			<include name="${cobertura.jar.file}" />
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	<taskdef classpathref="cobertura.classpath" resource="tasks.properties" />
+
+
+	<target name="javadoc">
+		<javadoc packagenames="faxapp.*" sourcepath="${src.dir}" destdir="doc" version="true" windowtitle="Fax Application">
+			<doctitle>
+				<![CDATA[<h1>= Fax Application 
+          =</h1>]]></doctitle>
+		<bottom>
+			<![CDATA[Copyright © 2011. All 
+          Rights Reserved.]]>
+		</bottom>
+		<group title="util packages" packages="com.abhishek.*" />
+		<group title="web packages" packages="org.jsp.*" />
+		<group title="data packages" packages="org.jsp.*" />
+	</javadoc>
+</target>
+
+
+<target name="build" description="Compile main 
+      source tree java files">
+	<mkdir dir="${build.dir}" />
+	<javac destdir="build" source="1.3" target="1.1" debug="true" deprecation="false" optimize="false" failonerror="true">
+		<src path="${src.dir}" />
+		<classpath refid="master-classpath" />
+	</javac>
+</target>
+
+
+<target name="deploywar" description="Deploy application as a WAR file">
+	<war destfile="${name}.war" webxml="${web.dir}/WEB-INF/web.xml">
+		<fileset dir="${web.dir}">
+			<include name="**/*.*" />
+		</fileset>
+	</war>
+	<!--
+	<copy todir="${deploy.path}" preservelastmodified="true">
+		<fileset dir=".">
+			<include name="*.war" />
+		</fileset>
+	</copy>
+	-->
+</target>
+
+
+<!-- ============================================================ -->
+<!-- Tomcat tasks -->
+<!-- ============================================================ -->
+
+<path id="catalina-ant-classpath">
+	<!-- We need the Catalina jars for Tomcat -->
+	<!-- * for other app servers - check the docs -->
+	<fileset dir="${appserver.lib}">
+		<include name="catalina-ant.jar" />
+	</fileset>
+</path>
+
+<taskdef name="install" classname="org.apache.catalina.ant.InstallTask">
+	<classpath refid="catalina-ant-classpath" />
+</taskdef>
+<taskdef name="reload" classname="org.apache.catalina.ant.ReloadTask">
+	<classpath refid="catalina-ant-classpath" />
+</taskdef>
+<taskdef name="list" classname="org.apache.catalina.ant.ListTask">
+	<classpath refid="catalina-ant-classpath" />
+</taskdef>
+<taskdef name="start" classname="org.apache.catalina.ant.StartTask">
+	<classpath refid="catalina-ant-classpath" />
+</taskdef>
+<taskdef name="stop" classname="org.apache.catalina.ant.StopTask">
+	<classpath refid="catalina-ant-classpath" />
+</taskdef>
+
+<target name="reload" description="Reload application in Tomcat">
+	<reload url="${tomcat.manager.url}" username="${tomcat.manager.username}" password="${tomcat.manager.password}" path="/${name}" />
+</target>
+
+
+<!-- COBERTURA -->
+
+<property name="lib.dir" value="lib" />
+<property name="lib.cobertura.dir" value="${lib.dir}" />
+<property name="cobertura.jar.file" value="${lib.dir}/cobertura.jar" />
+<property name="src.tests.dir" value="test" />
+<property name="cob.ser.file" value="cobertura.ser" />
+
+<property environment="env" />
+<property name="build.dir" value="build" />
+<property file="${build.dir}/build.${env.HOSTNAME}" />
+
+<property name="src.dir" value="src" />
+<property name="reports.dir" value="reports" />
+<property name="resources.dir" value="resources" />
+<property name="dest.dir" value="target" />
+<property name="dest.dir.classes" value="${dest.dir}/classes" />
+<property name="dest.dir.lib" value="${dest.dir.classes}/lib" />
+<property name="package.file" value="${dest.dir}/${package.name}" />
+
+<!-- cobertura properties -->
+<property name="cobertura.dir" value="${basedir}/coberturaBase" />
+<property name="cob.instrumented.dir" value="WebContent/WEB-INF/classes" />
+<property name="cob.reports.dir" value="${basedir}/cobertura/reports" />
+<property name="cb.file" value="WebContent/cobertura.ser">
+</property>
+
+<property name="report-1" value="${cob.reports.dir}/case-1" />
+<property name="report-2" value="${cob.reports.dir}/case-2" />
+<property name="report-3" value="${cob.reports.dir}/case-3" />
+<property name="report-4" value="${cob.reports.dir}/case-4" />
+<property name="report-5" value="${cob.reports.dir}/case-5" />
+
+
+<property name="webapp.path" value="WebContent" />
+<property name="tomcat.home" value="/usr/share/tomcat6" />
+
+
+
+<path id="build.class.path">
+	<fileset dir="lib">
+		<include name="**/*.jar" />
+	</fileset>
+</path>
+
+
+
+<target name="jspc">
+	<echo>=== PRE-COMPILING JSP FILES from ${webapp.path} to src ===</echo>
+	<jasper validateXml="false" uriroot="${webapp.path}" webXmlFragment="${webapp.path}/WEB-INF/generated_web.xml" outputDir="src" compilerSourceVM="1.3" compilerTargetVM="1.3" />
+</target>
+
+
+<target name="clean">
+	<delete>
+		<fileset dir="${basedir}" includes="*jsp" />
+		<fileset dir="${basedir}" includes="*jsp*" />
+	</delete>
+	<delete dir="/home/abhishekchauhan1503/cobertura" />
+</target>
+
+<target name="clean-1">
+	<delete dir="${report-1}" />
+	<delete file="${basedir}/cobertura.ser" />
+	<delete file="WebContent/WEB-INF/cobertura.ser" />
+
+	<delete file="/home/abhishekchauhan1503/cobertura/cobertura.ser" />
+	<delete file="${cb.file}" />
+	<delete dir="build" />
+	<delete dir="target" />
+
+	<delete dir="WebContent/WEB-INF/classes/" />
+	<delete dir="src/org" />
+</target>
+
+<target name="clean-2">
+	<delete dir="${report-2}" />
+	<delete file="${basedir}/cobertura.ser" />
+	<delete file="WebContent/WEB-INF/cobertura.ser" />
+	<delete file="/home/abhishekchauhan1503/cobertura/cobertura.ser" />
+	<delete file="${cb.file}" />
+	<delete dir="build" />
+	<delete dir="target" />
+
+	<delete dir="WebContent/WEB-INF/classes/" />
+	<delete dir="src/org" />
+</target>
+
+<target name="clean-3">
+	<delete dir="${report-3}" />
+	<delete file="${basedir}/cobertura.ser" />
+	<delete file="WebContent/WEB-INF/cobertura.ser" />
+	<delete file="/home/abhishekchauhan1503/cobertura/cobertura.ser" />
+	<delete file="${cb.file}" />
+	<delete dir="build" />
+	<delete dir="target" />
+
+	<delete dir="WebContent/WEB-INF/classes/" />
+	<delete dir="src/org" />
+</target>
+
+<target name="clean-4">
+	<delete dir="${report-4}" />
+	<delete file="${basedir}/cobertura.ser" />
+	<delete file="WebContent/WEB-INF/cobertura.ser" />
+	<delete file="/home/abhishekchauhan1503/cobertura/cobertura.ser" />
+	<delete file="${cb.file}" />
+	<delete dir="build" />
+	<delete dir="target" />
+
+	<delete dir="WebContent/WEB-INF/classes/" />
+	<delete dir="src/org" />
+</target>
+
+<target name="clean-5">
+	<delete dir="${report-5}" />
+	<delete file="${basedir}/cobertura.ser" />
+	<delete file="WebContent/WEB-INF/cobertura.ser" />
+	<delete file="/home/abhishekchauhan1503/cobertura/cobertura.ser" />
+	<delete file="${cb.file}" />
+	<delete dir="build" />
+	<delete dir="target" />
+
+	<delete dir="WebContent/WEB-INF/classes/" />
+	<delete dir="src/org" />
+</target>
+
+<target name="prepare">
+	<mkdir dir="${dest.dir}" />
+	<mkdir dir="WebContent/WEB-INF/classes" />
+	<mkdir dir="${dest.dir.classes}" />
+	<mkdir dir="${dest.dir.classes}/META-INF" />
+	<mkdir dir="${reports.dir}" />
+	<mkdir dir="${basedir}/cobertura" />
+	<mkdir dir="/home/abhishekchauhan1503/cobertura" />
+	<chmod perm="777" type="dir">
+		<fileset dir="/home/abhishekchauhan1503/cobertura">
+		</fileset>
+	</chmod>
+	<!-- cobertura directories-->
+	<mkdir dir="${cob.instrumented.dir}" />
+
+	<mkdir dir="${report-1}" />
+	<mkdir dir="${report-2}" />
+	<mkdir dir="${report-3}" />
+	<mkdir dir="${report-4}" />
+	<mkdir dir="${report-5}" />
+</target>
+
+<target name="compile" depends="prepare">
+	<echo>=== COMPILE ===</echo>
+	<echo>Compiling ${src.dir} files ...</echo>
+
+
+	<javac debug="on" srcdir="${src.dir}" destdir="${dest.dir.classes}" includes="com/**, org/**">
+		<classpath refid="build.class.path" />
+		<!-- classpath refid="cobertura.classpath" -->
+		<classpath refid="master-classpath" />
+	</javac>
+
+
+
+	<!-- compile files on the src-tests path -->
+	<echo>Compiling ${src.tests.dir} files ...</echo>
+	<javac debug="on" srcdir="${src.tests.dir}" destdir="${dest.dir.classes}" includes="com/**, org/**">
+		<classpath refid="build.class.path" />
+		<!-- classpath refid="cobertura.classpath" -->
+		<classpath refid="master-classpath" />
+	</javac>
+</target>
+
+
+<target name="generate" depends="prepare">
+	<echo>=== COMPILE ===</echo>
+	<echo>Compiling ${src.dir} files ...</echo>
+
+
+	<javac debug="on" srcdir="${src.dir}" destdir="WebContent/WEB-INF/classes" includes="com/**, org/**">
+		<classpath refid="build.class.path" />
+		<!-- classpath refid="cobertura.classpath" -->
+		<classpath refid="master-classpath" />
+	</javac>
+
+</target>
+
+
+
+
+<target name="instrument">
+
+	<copy todir="WebContent/WEB-INF/classes/" file="cobertura.properties" />
+	<cobertura-instrument todir="${cob.instrumented.dir}" datafile="${cb.file}">
+		<fileset dir="${build.dir}">
+			<include name="**/*.class" />
+			<exclude name="**/Report_jsp.class" />
+			<exclude name="**/Common_jsp.class" />
+		</fileset>
+	</cobertura-instrument>
+
+	<copy todir="/home/abhishekchauhan1503/cobertura/BaseFile" file="${cb.file}" />
+
+</target>
+
+<target name="instrument-ica9">
+
+	<copy todir="WebContent/WEB-INF/classes/" file="cobertura.properties" />
+	<cobertura-instrument todir="${cob.instrumented.dir}" datafile="${cb.file}">
+		<fileset dir="${build.dir}">
+			<include name="**/Books_jsp.class" />
+			<include name="**/MyInfo_jsp.class" />
+			<include name="**/Login_jsp.class" />
+			<include name="**/OrdersRecord_jsp.class" />
+			<exclude name="**/Report_jsp.class" />
+			<exclude name="**/Common_jsp.class" />
+		</fileset>
+	</cobertura-instrument>
+
+	<copy todir="/home/abhishekchauhan1503/cobertura/BaseFile" file="${cb.file}" />
+
+</target>
+
+<target name="html-coverage-report-ica9">
+	<delete dir="${report-1}" />
+	<delete file="/home/abhishekchauhan1503/cobertura/cobertura.ser" />
+
+	<mkdir dir="${report-1}" />
+
+	<cobertura-report srcdir="${src.dir}" destdir="${report-1}" format="html" datafile="/home/abhishekchauhan1503/cobertura/MergedFile/cobertura.ser">
+	</cobertura-report>
+</target>
+
+
+<target name="instrument-login">
+	<copy todir="WebContent/WEB-INF/classes/" file="cobertura.properties" />
+
+	<cobertura-instrument todir="${cob.instrumented.dir}" datafile="${cb.file}">
+		<fileset dir="${build.dir}">
+			<include name="**/Login_jsp.class" />
+		</fileset>
+	</cobertura-instrument>
+</target>
+
+<target name="coverage-check">
+	<cobertura-check branchrate="0" totallinerate="0" />
+</target>
+
+<target name="merge">
+	<copy todir="${basedir}/cobertura" file="WebContent/cobertura.ser" />
+	<copy todir="${basedir}" file="WebContent/cobertura.ser" />
+
+	<cobertura-merge datafile="WebContent/cobertura.ser" maxmemory="512m">
+		<fileset dir="/home/abhishekchauhan1503/cobertura">
+			<include name="cobertura.ser" />
+		</fileset>
+	</cobertura-merge>
+</target>
+
+
+<target name="merge-2">
+
+	<delete file="/home/abhishekchauhan1503/cobertura/MergedFile/cobertura.ser" />
+
+	<copy todir="${basedir}/cobertura" file="WebContent/cobertura.ser" />
+	<copy todir="${basedir}" file="WebContent/cobertura.ser" />
+	<copy todir="/home/abhishekchauhan1503/cobertura/MergedFile" file="/home/abhishekchauhan1503/cobertura/BaseFile/cobertura.ser" />
+
+	<cobertura-merge datafile="/home/abhishekchauhan1503/cobertura/MergedFile/cobertura.ser" maxmemory="512m">
+		<fileset dir="/home/abhishekchauhan1503/cobertura">
+			<include name="cobertura.ser" />
+		</fileset>
+	</cobertura-merge>
+</target>
+
+<target name="coverage-report-ica8">
+	<delete dir="${report-1}" />
+	<delete file="/home/abhishekchauhan1503/cobertura/cobertura.ser" />
+
+	<mkdir dir="${report-1}" />
+
+	<cobertura-report srcdir="${src.dir}" destdir="${report-1}" format="xml" datafile="/home/abhishekchauhan1503/cobertura/MergedFile/cobertura.ser">
+	</cobertura-report>
+
+
+	<copy todir="/home/abhishekchauhan1503/workspace/ICA-8/Example/Reports" file="/home/abhishekchauhan1503/workspace/Bookstore/cobertura/reports/case-1/coverage.xml" />
+
+	<!--<delete file="/home/abhishekchauhan1503/workspace/Bookstore/cobertura/reports/case-1/coverage.xml" /> -->
+</target>
+
+<target name="coverage-report-ica9">
+	<delete dir="${report-1}" />
+	<delete file="/home/abhishekchauhan1503/cobertura/cobertura.ser" />
+
+	<mkdir dir="${report-1}" />
+
+	<cobertura-report srcdir="${src.dir}" destdir="${report-1}" format="xml" datafile="/home/abhishekchauhan1503/cobertura/MergedFile/cobertura.ser">
+	</cobertura-report>
+
+
+	<copy todir="/home/abhishekchauhan1503/workspace/ICA-9/Example/Reports" file="/home/abhishekchauhan1503/workspace/Bookstore/cobertura/reports/case-1/coverage.xml" />
+
+	<!--<delete file="/home/abhishekchauhan1503/workspace/Bookstore/cobertura/reports/case-1/coverage.xml" /> -->
+</target>
+
+<target name="remove" description="Remove application on servlet container">
+
+	<undeploy url="${manager.url}" username="manager" password="manager" path="/Bookstore" />
+
+</target>
+
+<target name="install" description="Install application to servlet container">
+
+	<deploy url="${manager.url}" username="manager" password="manager" path="/Bookstore" localWar="${basedir}/Bookstore.war" />
+
+</target>
+
+
+<target name="coverage-report-1">
+	<cobertura-report srcdir="${src.dir}" destdir="${report-1}" format="xml" datafile="WebContent/cobertura.ser">
+	</cobertura-report>
+</target>
+
+<target name="coverage-report-2">
+	<cobertura-report srcdir="${src.dir}" destdir="${report-2}" format="html" datafile="WebContent/cobertura.ser">
+	</cobertura-report>
+</target>
+
+<target name="coverage-report-3">
+	<cobertura-report srcdir="${src.dir}" destdir="${report-3}" format="html" datafile="WebContent/cobertura.ser">
+	</cobertura-report>
+</target>
+
+<target name="coverage-report-4">
+	<cobertura-report srcdir="${src.dir}" destdir="${report-4}" format="html" datafile="WebContent/cobertura.ser">
+	</cobertura-report>
+</target>
+
+<target name="coverage-report-5">
+	<cobertura-report srcdir="${src.dir}" destdir="${report-5}" format="html" datafile="WebContent/cobertura.ser">
+	</cobertura-report>
+</target>
+
+<target name="setup-1" depends="clean,clean-1,prepare,jspc,build,generate" />
+<target name="setup-2" depends="clean,clean-2,prepare,jspc,build,generate" />
+<target name="setup-3" depends="clean,clean-3,prepare,jspc,build,generate" />
+<target name="setup-4" depends="clean,clean-4,prepare,jspc,build,generate" />
+<target name="setup-5" depends="clean,clean-5,prepare,jspc,build,generate" />
+
+<target name="gen-ica9" depends="setup-1, instrument-ica9, deploywar, remove, install" />
+
+<target name="gen-1" depends="setup-1, instrument, deploywar, remove, install" />
+<target name="gen-2" depends="setup-2, instrument, deploywar, remove, install" />
+<target name="gen-3" depends="setup-3, instrument, deploywar, remove, install" />
+<target name="gen-4" depends="setup-4, instrument, deploywar, remove, install" />
+<target name="gen-5" depends="setup-5, instrument, deploywar, remove, install" />
+
+
+</project>

@@ -1,0 +1,173 @@
+We have experimented our implementation using the following application:
+
+======================================================
+package com.csci599.project;
+
+
+
+public class Condition {
+
+	public static void main(String[] args) {
+		int n = 10000;
+		n = n + 4;
+		int a = Integer.parseInt(args[0]), b = Integer.parseInt(args[1]), c = Integer
+				.parseInt(args[2]), d = Integer.parseInt(args[3]), e = Integer
+				.parseInt(args[4]), f = Integer.parseInt(args[5]), g = Integer
+				.parseInt(args[6]), h = Integer.parseInt(args[7]);
+		String x1 = "xy";
+		if (b == 3 && c == a && x1.equalsIgnoreCase("xy")) {
+			if (d == 5) {
+				if (a == 6) {
+					System.out.println("A = 6");
+				}
+				if (a == 7) {
+					System.out.println("A != 6");
+					System.out.println("This is the line to execute");
+				}
+			} else {
+				if (a == 7) {
+					System.out.println("A = 7");
+				} else {
+					System.out.println("A != 7");
+				}
+			}
+		} else {
+			if (e == 8) {
+				System.out.println("E = 8");
+			} else {
+				System.out.println("E != 8");
+			}
+		}
+
+		if (f >= 3 && g <= 4) {
+			if (h == 5) {
+				e = n + 1 * (a / 4);
+				if (e == 6) {
+					System.out.println("E = 6");
+				} else {
+					System.out.println("E != 6");
+				}
+			} else {
+				if (e == 7) {
+					System.out.println("E = 7");
+				} else {
+					System.out.println("E != 7");
+				}
+			}
+		} else {
+			if (e == 8) {
+				System.out.println("E = 8");
+			} else {
+				System.out.println("E != 8");
+			}
+		}
+		System.out.println("Start of WHILE Loop");
+		int x = 1;
+		while (x < 10) {
+			System.out.println("This is X WHILE: " + x);
+			x++;
+		}
+
+		x = 1;
+		System.out.println("Start of DO WHILE Loop");
+		do {
+			System.out.println("This is X DO WHILE: " + x);
+			x++;
+		} while (x < 10);
+
+		System.out.println("Start of FOR Loop");
+		for (x = 1; x < 10; x++) {
+			System.out.println("This is X FOR: " + x);
+			if (x == 8) {
+				break;
+			}
+		}
+		System.out.println("This is the end");
+	}
+}
+
+======================================================
+
+Our goal is to execute line 22, which contains instruction "System.out.println("This is the line to execute");"
+
+To analyze the above class we run our implementation with the following arguments:
+	1. Line number to run
+	2. Path to class folder
+	3. Name of class file (without .class extension)
+	4. Name of the method
+
+This command is executed to run the analysis:
+
+java -cp ./bin:./bcel-5.2.jar com.csci599.project.MainClass 22 bin/com/csci599/project/ Condition main
+
+This is the output of the analysis: 
+
+======================================================
+Total Nodes: 208
+1 independent conditions out of 6
+135(line number 22) can be reached by 73 other nodes
+Node at position 135 depends on the following conditions 
+Total dependency conditions: 5
+
+ 119: if_icmpne[160](3) -> iload 7
+  99: if_icmpne[160](3) -> iload_2
+  93: ifeq[153](3) -> iload 6
+  83: if_icmpne[160](3) -> iload 6
+  77: if_icmpne[160](3) -> iload 6
+
+Conditions: 
+
+Instruction:  119: if_icmpne[160](3) -> iload 7
+Must evaluate to : true
+Depends on variable: a
+For instruction to be TRUE, a must be : 7
+Source code line number: 20
+
+
+Instruction:   99: if_icmpne[160](3) -> iload_2
+Must evaluate to : true
+Depends on variable: d
+For instruction to be TRUE, d must be : 5
+Source code line number: 16
+
+
+Instruction:   93: ifeq[153](3) -> iload 6
+Must evaluate to : true
+Depends on variable: x1
+For instruction to be TRUE, x1 must be : xy
+Source code line number: 15
+The variable x1 does not come from outside. It is redefined at position: 73
+
+
+Instruction:   83: if_icmpne[160](3) -> iload 6
+Must evaluate to : true
+Depends on variable: c
+For instruction to be TRUE, c must be : a
+Source code line number: 15
+
+
+Instruction:   77: if_icmpne[160](3) -> iload 6
+Must evaluate to : true
+Depends on variable: b
+For instruction to be TRUE, b must be : 3
+Source code line number: 15
+======================================================
+
+As can be implied from the output, the following conditions need to be satisfied to successfully execute line 22 :
+
+1. a == 7 
+2. d == 5
+3. x1 == "xy"
+4. c == a
+5. b == 3
+
+(note that x1 is defined inside the application and not passed as an argument)
+
+So running class Condition with the following arguments will NOT cover line 22:
+java -cp target:./lib/cobertura.jar com.csci599.project.Condition 7 3 5 5 0 0 0 0
+
+However, after reading the analysis report and changing the arguments, this command will cover line 22:
+java -cp target:./lib/cobertura.jar com.csci599.project.Condition 7 3 7 5 0 0 0 0
+
+See case-a and case-b coverage files located in cobertura/reports directory.
+

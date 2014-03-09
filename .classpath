@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/java-7-openjdk-amd64"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/BCEL"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/Cobertura"/>
+	<classpathentry kind="lib" path="bcel-5.2.jar"/>
+	<classpathentry kind="lib" path="lib/cobertura.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
