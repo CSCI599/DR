@@ -274,11 +274,11 @@ public class Runner {
 
 		// Run line number 43 in source code, 240 in byte code
 
-		System.out.println("195 post dominates: ");
+		// System.out.println("195 post dominates: ");
 		for (PostDominatorNode postDomNode : pdNodes) {
 			if (postDomNode.nodeNumber == 195) {
 				for (PostDominatorNode child : postDomNode.children) {
-					System.out.println(child.nodeNumber);
+					// System.out.println(child.nodeNumber);
 				}
 			}
 		}
@@ -288,7 +288,7 @@ public class Runner {
 
 		int pos = -1;
 		for (int key : mainGraph.byteCode_to_sourceCode_mapping.keySet()) {
-			if (mainGraph.byteCode_to_sourceCode_mapping.get(key) == 45) {
+			if (mainGraph.byteCode_to_sourceCode_mapping.get(key) == 92) {
 				pos = key;
 			}
 		}
@@ -298,23 +298,23 @@ public class Runner {
 
 		for (PostDominatorNode pN : pdNodes) {
 			if (pN.nodeNumber == pos) {
-				System.out.println("Post dominated children: ");
+				// System.out.println("Post dominated children: ");
 				for (PostDominatorNode children : pN.children) {
-					System.out.println(mainGraph.byteCode_to_sourceCode_mapping
-							.get(children.nodeNumber));
+					// System.out.println(mainGraph.byteCode_to_sourceCode_mapping
+					// .get(children.nodeNumber));
 				}
-				System.out.println("Control Dependent nodes: ");
+				// System.out.println("Control Dependent nodes: ");
 				fullCDList = cDep.getFullControlDependenceList(pdNodes, pN);
 				for (PostDominatorNode children : fullCDList) {
-					System.out.println(mainGraph.byteCode_to_sourceCode_mapping
-							.get(children.nodeNumber));
+					// System.out.println(mainGraph.byteCode_to_sourceCode_mapping
+					// .get(children.nodeNumber));
 				}
 			}
 		}
 		ArrayList<InstructionHandle> dependencyList = new ArrayList<InstructionHandle>();
 		for (PostDominatorNode pdNd : pdNodes) {
 			if (pdNd.nodeNumber == pos) {
-				for (PostDominatorNode contDep : fullCDList) {
+				for (PostDominatorNode contDep : pdNd.controlDependencyList) {
 					dependencyList.add(contDep.nodeName);
 				}
 			}
@@ -330,6 +330,7 @@ public class Runner {
 			System.out.println("Must evaluate to : " + dep.true_false);
 			System.out.println("Depends on variable: "
 					+ dep.varVal.variableName);
+			System.out.println("Variable Type: " + dep.varVal.type);
 			System.out.println("For instruction to be TRUE, "
 					+ dep.varVal.variableName + " must be : "
 					+ dep.varVal.value);
