@@ -12,6 +12,9 @@ public class Condition {
 				.parseInt(args[4]), f = Integer.parseInt(args[5]), g = Integer
 				.parseInt(args[6]), h = Integer.parseInt(args[7]);
 		String x1 = "xy";
+		if(x1.equalsIgnoreCase("xy")){
+			System.out.println("x1 = xy");
+		}
 		if (b == 3 && c == a && x1.equalsIgnoreCase("xy")) {
 			if (d == 5) {
 				if (a == 6) {

@@ -245,18 +245,18 @@ public class Runner {
 
 		for (PostDominatorNode pdNode : pdNodes) {
 			if (pdNode.controlDependencyList.size() != 0) {
-				System.out.print("\nNode "
-						+ mainGraph.byteCode_to_sourceCode_mapping
-								.get(pdNode.nodeNumber) + "("
-						+ pdNode.nodeNumber + ")"
-						+ " is control dependent on : ");
+				//System.out.print("\nNode "
+				//		+ mainGraph.byteCode_to_sourceCode_mapping
+				//				.get(pdNode.nodeNumber) + "("
+				//		+ pdNode.nodeNumber + ")"
+				//		+ " is control dependent on : ");
 				for (PostDominatorNode pDN : pdNode.controlDependencyList) {
-					System.out.print(" "
-							+ mainGraph.byteCode_to_sourceCode_mapping
-									.get(pDN.nodeNumber) + "(" + pDN.nodeNumber
-							+ ")" + " , ");
+				//	System.out.print(" "
+				//			+ mainGraph.byteCode_to_sourceCode_mapping
+				//					.get(pDN.nodeNumber) + "(" + pDN.nodeNumber
+				//			+ ")" + " , ");
 				}
-				System.out.println();
+				//System.out.println();
 			}
 		}
 		// for (Integer key : postDominatedNodes.keySet()) {
@@ -288,7 +288,7 @@ public class Runner {
 
 		int pos = -1;
 		for (int key : mainGraph.byteCode_to_sourceCode_mapping.keySet()) {
-			if (mainGraph.byteCode_to_sourceCode_mapping.get(key) == 92) {
+			if (mainGraph.byteCode_to_sourceCode_mapping.get(key) == 16) {
 				pos = key;
 			}
 		}
