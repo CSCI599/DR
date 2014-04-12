@@ -48,9 +48,9 @@ public class Dominator {
 			}
 
 		}
-
+		System.out.println("Total Nodes: "+N.size());
+		
 		while (change) {
-
 			// Mark all nodes as not-visited
 			for (Nodes n : N) {
 				n.visited = false;
@@ -60,20 +60,24 @@ public class Dominator {
 
 			searchQueue.clear();
 			searchQueue.add(N.get(0));
-
+			
+			
 			while (!searchQueue.isEmpty()) {
+				//System.out.println("SearchQueue head: "+searchQueue.get(0).name+" "+searchQueue.get(0).nodeName);
 
 				Nodes n = searchQueue.get(0);
 
 				if (n.visited || n == null) {
+					//System.out.println("VISITED_Removed: "+searchQueue.get(0).nodeName+" "+searchQueue.get(0).name);
 					searchQueue.remove(0);
 
 					continue;
 				}
 
 				if (n.parents == null || n.parents.size() == 0) {
-
 					n.visited = true;
+					//System.out.println("No parents for: "+searchQueue.get(0).name+" "+searchQueue.get(0).nodeName);
+					//System.out.println("NO_PARENTS_Removed: "+searchQueue.get(0).nodeName+" "+searchQueue.get(0).name);
 					searchQueue.remove(0);
 				} else if (n.parents.size() == 1) {
 					T.clear();
@@ -103,6 +107,9 @@ public class Dominator {
 					T.addAll(dominators_for_current_node);
 				}
 
+				if(searchQueue.isEmpty()){
+					break;
+				}
 				T.add(searchQueue.get(0));
 				ArrayList<Nodes> children = new ArrayList<Nodes>();
 
@@ -120,7 +127,7 @@ public class Dominator {
 
 				// Mark Node as visited
 				n.visited = true;
-
+				//System.out.println("Removed: "+searchQueue.get(0).nodeName+" "+searchQueue.get(0).name);
 				searchQueue.remove(0);
 
 				// Compare T and dominatorNodes
@@ -344,7 +351,7 @@ public class Dominator {
 					n.post_dominators.addAll(T);
 
 					for (Nodes node : cfg.nodes) {
-						if (node.nodeName != null) {
+						if (node.nodeName != null && n.nodeName !=null) {
 
 							if (node.nodeName.getPosition() == n.nodeName
 									.getPosition()) {
@@ -363,7 +370,7 @@ public class Dominator {
 				// System.out.println("Node "+searchQueue.get(0).nodeName+" has "+searchQueue.get(0).post_dominators.size()+" post-dominators");
 				searchQueue.remove(0);
 				for (Nodes node : cfg.nodes) {
-					if (node.nodeName != null) {
+					if (node.nodeName != null && n.nodeName !=null) {
 
 						if (node.nodeName.getPosition() == n.nodeName
 								.getPosition()) {

@@ -31,7 +31,7 @@ public class Runner {
 		int i = 1;
 		CFG_Graph mainGraph = new CFG_Graph();
 		for (CFG_Graph graph : graphs) {
-			if (graph.method.getName().equalsIgnoreCase("main")) {
+			if (graph.method.getName().equalsIgnoreCase("Recommended_Show")) {
 				mainGraph = graph;
 			}
 
@@ -53,13 +53,15 @@ public class Runner {
 					// .get((int) edge.get(1).getPosition())
 					// + ")\n");
 				} else {
-					System.out.println("EXIT\n");
+					// System.out.println("EXIT\n");
 				}
 			}
 
 			System.out.println("Method: " + graph.method.getName());
-			System.out
-					.println("Code: " + graph.method.getCode().toString(true));
+			if (graph.method.getName().equalsIgnoreCase("Recommended_Show")) {
+				System.out.println("Code: "
+						+ graph.method.getCode().toString(true));
+			}
 
 		}
 
@@ -134,16 +136,19 @@ public class Runner {
 		SortedMap<Integer, PostDominatorNode> pdNodesMap = new TreeMap<Integer, PostDominatorNode>();
 		ArrayList<PostDominatorNode> postDomNodes = new ArrayList<PostDominatorNode>();
 		for (Nodes node : mainGraphRev.nodes) {
-			PostDominatorNode pdNode = adapter
-					.convertNodeToPostDominatorNode(node);
-			postDomNodes.add(pdNode);
-			if (pdNode.nodeName != null) {
-				pdNodesMap.put(pdNode.nodeName.getPosition(), pdNode);
-			} else {
-				if (pdNode.name.equalsIgnoreCase("Entry")) {
-					pdNodesMap.put(-1, pdNode);
-				} else if (pdNode.name.equalsIgnoreCase("Exit")) {
-					pdNodesMap.put(-2, pdNode);
+			if (node.nodeName != null) {
+				PostDominatorNode pdNode = adapter
+						.convertNodeToPostDominatorNode(node);
+				postDomNodes.add(pdNode);
+
+				if (pdNode.nodeName != null) {
+					pdNodesMap.put(pdNode.nodeName.getPosition(), pdNode);
+				} else {
+					if (pdNode.name.equalsIgnoreCase("Entry")) {
+						pdNodesMap.put(-1, pdNode);
+					} else if (pdNode.name.equalsIgnoreCase("Exit")) {
+						pdNodesMap.put(-2, pdNode);
+					}
 				}
 			}
 		}
@@ -233,32 +238,28 @@ public class Runner {
 			}
 		}
 		ControlDependency cDep = new ControlDependency();
-
-		System.out.println("Start children: " + start.children.size());
-		if (start != null && target != null) {
-			cDep.DFS(postDomNodes, start, target);
-		} else {
-			System.out.println("Null START/TARGET");
-		}
+		start = null;
+		// System.out.println("Start children: " + start.children.size());
+		// if (start != null && target != null) {
+		// cDep.DFS(postDomNodes, start, target);
+		// } else {
+		// System.out.println("Null START/TARGET");
+		// }
 		ArrayList<PostDominatorNode> pdNodes = cDep.getControlDependency(
 				mainGraph, postDomNodes);
 
-		for (PostDominatorNode pdNode : pdNodes) {
-			if (pdNode.controlDependencyList.size() != 0) {
-				//System.out.print("\nNode "
-				//		+ mainGraph.byteCode_to_sourceCode_mapping
-				//				.get(pdNode.nodeNumber) + "("
-				//		+ pdNode.nodeNumber + ")"
-				//		+ " is control dependent on : ");
-				for (PostDominatorNode pDN : pdNode.controlDependencyList) {
-				//	System.out.print(" "
-				//			+ mainGraph.byteCode_to_sourceCode_mapping
-				//					.get(pDN.nodeNumber) + "(" + pDN.nodeNumber
-				//			+ ")" + " , ");
-				}
-				//System.out.println();
-			}
-		}
+		/*
+		 * for (PostDominatorNode pdNode : pdNodes) { if
+		 * (pdNode.controlDependencyList.size() != 0) {
+		 * //System.out.print("\nNode " // +
+		 * mainGraph.byteCode_to_sourceCode_mapping // .get(pdNode.nodeNumber) +
+		 * "(" // + pdNode.nodeNumber + ")" // + " is control dependent on : ");
+		 * for (PostDominatorNode pDN : pdNode.controlDependencyList) { //
+		 * System.out.print(" " // + mainGraph.byteCode_to_sourceCode_mapping //
+		 * .get(pDN.nodeNumber) + "(" + pDN.nodeNumber // + ")" + " , "); }
+		 * //System.out.println(); } }
+		 */
+
 		// for (Integer key : postDominatedNodes.keySet()) {
 		// if (key >= 496 && key <= 520) {
 
@@ -275,27 +276,26 @@ public class Runner {
 		// Run line number 43 in source code, 240 in byte code
 
 		// System.out.println("195 post dominates: ");
-		for (PostDominatorNode postDomNode : pdNodes) {
-			if (postDomNode.nodeNumber == 195) {
-				for (PostDominatorNode child : postDomNode.children) {
-					// System.out.println(child.nodeNumber);
-				}
-			}
-		}
-
+		/*
+		 * for (PostDominatorNode postDomNode : pdNodes) { if
+		 * (postDomNode.nodeNumber == 572) { for (PostDominatorNode child :
+		 * postDomNode.children) { // System.out.println(child.nodeNumber); } }
+		 * }
+		 */
 		System.out.println();
 		System.out.println();
 
 		int pos = -1;
 		for (int key : mainGraph.byteCode_to_sourceCode_mapping.keySet()) {
-			if (mainGraph.byteCode_to_sourceCode_mapping.get(key) == 16) {
+			if (mainGraph.byteCode_to_sourceCode_mapping.get(key) == 590) {
 				pos = key;
 			}
 		}
-		System.out.println("Node: "
+		System.out.println("Node: " + pos + " Source line number: "
 				+ mainGraph.byteCode_to_sourceCode_mapping.get(pos));
 		ArrayList<PostDominatorNode> fullCDList = new ArrayList<PostDominatorNode>();
 
+		System.out.println("PD Nodes Size: " + pdNodes.size());
 		for (PostDominatorNode pN : pdNodes) {
 			if (pN.nodeNumber == pos) {
 				// System.out.println("Post dominated children: ");
@@ -314,15 +314,20 @@ public class Runner {
 		ArrayList<InstructionHandle> dependencyList = new ArrayList<InstructionHandle>();
 		for (PostDominatorNode pdNd : pdNodes) {
 			if (pdNd.nodeNumber == pos) {
+				System.out.println("Found");
+				System.out.println("Number of CD nodes: "+pdNd.controlDependencyList.size());
 				for (PostDominatorNode contDep : pdNd.controlDependencyList) {
+					System.out.println("Added");
 					dependencyList.add(contDep.nodeName);
 				}
 			}
 		}
-
+		System.out.println("Dependencies: " + dependencyList.size());
 		ArrayList<DependencyInformation> depList = cfg.dependencyAdapter(
 				dependencyList, pos, mainGraph.localVariableTable,
 				mainGraph.nodes, mainGraph.constantPool);
+
+		System.out.println("Dep List size: " + depList.size());
 
 		for (DependencyInformation dep : depList) {
 			System.out.println();

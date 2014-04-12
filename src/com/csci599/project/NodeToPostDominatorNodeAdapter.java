@@ -6,14 +6,24 @@ public class NodeToPostDominatorNodeAdapter {
 		PostDominatorNode pdNode = new PostDominatorNode();
 		pdNode = new PostDominatorNode(node);
 		Nodes immediateDom = null;
-		int count = 0;
+		int diff = 10000;
+		if (node.nodeName != null) {
+		}
 		for (Nodes immDom : pdNode.post_dominators) {
-			if (immDom.post_dominators.size() > count) {
-				immediateDom = immDom;
-				count = immediateDom.post_dominators.size();
+			if (immDom.nodeName != null) {
+				int dif = Math.abs(node.nodeName.getPosition()
+						- immDom.nodeName.getPosition());
+				if (dif < diff) {
+					immediateDom = immDom;
+					diff = dif;
+				}
 			}
 		}
-		PostDominatorNode parent = new PostDominatorNode(immediateDom);
+		PostDominatorNode parent = null;
+		if(immediateDom != null){
+			 parent = new PostDominatorNode(immediateDom);
+		}
+		
 		if (pdNode.nodeName != null) {
 			pdNode.nodeNumber = pdNode.nodeName.getPosition();
 		} else if (pdNode.name.equalsIgnoreCase("Entry")) {

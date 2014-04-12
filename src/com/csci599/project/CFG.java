@@ -289,34 +289,43 @@ public class CFG {
 			if (nodes.get(i).nodeName.getPosition() == condition.getPosition()) {
 
 				if (nodes.get(i).nodeName.getInstruction() instanceof IF_ICMPNE
+						|| nodes.get(i).nodeName.getInstruction() instanceof IFNONNULL
 						|| nodes.get(i).nodeName.getInstruction() instanceof IF_ICMPGT
 						|| nodes.get(i).nodeName.getInstruction() instanceof IF_ICMPLT
 						|| nodes.get(i).nodeName.getInstruction() instanceof org.apache.bcel.generic.IF_ICMPGE
 						|| nodes.get(i).nodeName.getInstruction() instanceof org.apache.bcel.generic.IF_ICMPLE
 						|| nodes.get(i).nodeName.getInstruction() instanceof IFEQ
+						|| nodes.get(i).nodeName.getInstruction() instanceof IFNE
 						|| nodes.get(i).nodeName.getInstruction() instanceof org.apache.bcel.generic.TABLESWITCH) {
-					// System.out.println("First Passed");
+					System.out.println("First Passed");
 					int j = 1;
 					boolean added = true;
-					while (added) {
+					while (added && j <= 3) {
 						if (nodes.get(i + j).nodeName.getInstruction() instanceof BIPUSH
 								|| nodes.get(i + j).nodeName.getInstruction() instanceof ICONST
-								|| nodes.get(i + j).nodeName.getInstruction() instanceof ILOAD
-								|| nodes.get(i + j).nodeName.getInstruction() instanceof ISTORE) {
+								|| nodes.get(i + j).nodeName.getInstruction() instanceof ILOAD								
+								|| nodes.get(i + j).nodeName.getInstruction() instanceof ALOAD
+								|| nodes.get(i + j).nodeName.getInstruction() instanceof LDC
+								//|| nodes.get(i + j).nodeName.getInstruction() instanceof ISTORE
+								//|| nodes.get(i + j).nodeName.getInstruction() instanceof ASTORE
+								) {
 
 							conditions.add(nodes.get(i + j).nodeName);
 							j++;
 							added = true;
-						} else if (nodes.get(i + j + 2).nodeName
+						} /*
+						else if (nodes.get(i + j + 2).nodeName
 								.getInstruction() instanceof ASTORE
 								|| nodes.get(i + j + 2).nodeName
 										.getInstruction() instanceof ALOAD
 								|| nodes.get(i + j + 2).nodeName
 										.getInstruction() instanceof LDC) {
-							// System.out.println("Second Passed");
+							System.out.println("Second Passed");
 							conditions.add(nodes.get(i + j + 2).nodeName);
+							added = true;
 							j++;
-						} else {
+						}*/
+						else {
 
 							added = false;
 						}
@@ -324,35 +333,6 @@ public class CFG {
 
 				}
 
-				/*
-				 * if (nodes.get(i).nodeName.getInstruction() instanceof
-				 * IF_ICMPNE) { conditionInstruction1 = nodes.get(i +
-				 * 1).nodeName; conditionInstruction2 = nodes.get(i +
-				 * 2).nodeName; break; } else if
-				 * (nodes.get(i).nodeName.getInstruction() instanceof IF_ICMPGT)
-				 * { conditionInstruction1 = nodes.get(i + 1).nodeName;
-				 * conditionInstruction2 = nodes.get(i + 2).nodeName; break; }
-				 * else if (nodes.get(i).nodeName.getInstruction() instanceof
-				 * IF_ICMPLT) { conditionInstruction1 = nodes.get(i +
-				 * 1).nodeName; conditionInstruction2 = nodes.get(i +
-				 * 2).nodeName; break; } else if
-				 * (nodes.get(i).nodeName.getInstruction() instanceof
-				 * org.apache.bcel.generic.IF_ICMPGE) { conditionInstruction1 =
-				 * nodes.get(i + 1).nodeName; conditionInstruction2 =
-				 * nodes.get(i + 2).nodeName; break; } else if
-				 * (nodes.get(i).nodeName.getInstruction() instanceof
-				 * org.apache.bcel.generic.IF_ICMPLE) { conditionInstruction1 =
-				 * nodes.get(i + 1).nodeName; conditionInstruction2 =
-				 * nodes.get(i + 2).nodeName; break; } else if
-				 * (nodes.get(i).nodeName.getInstruction() instanceof IFEQ) {
-				 * conditionInstruction1 = nodes.get(i + 2).nodeName;
-				 * conditionInstruction2 = nodes.get(i + 3).nodeName; break; }
-				 * else if (nodes.get(i).nodeName.getInstruction() instanceof
-				 * org.apache.bcel.generic.TABLESWITCH) { conditionInstruction1
-				 * = nodes.get(i + 1).nodeName; conditionInstruction2 =
-				 * nodes.get(i + 2).nodeName; conditionInstruction3 =
-				 * nodes.get(i + 3).nodeName; break; }
-				 */
 			}
 
 		}
@@ -404,8 +384,9 @@ public class CFG {
 					}
 				}
 			} else if (con.getInstruction() instanceof LDC) {
-				// System.out.println("LDC Instruction: " + con);
 				value = ((LDC) con.getInstruction()).getValue(constantPool);
+				System.out.println("LDC Instruction: " + con + " value = "
+						+ value);
 
 			} else {
 				System.out.println("No match: " + con);
@@ -447,8 +428,16 @@ public class CFG {
 		// System.out.println(variableName + " has the value: " + value);
 		VariableValues varVal = new VariableValues();
 		varVal.variableName = variableName;
+		if(condition.getInstruction() instanceof IFNONNULL){
+			varVal.value = "Not Null";
+		}else{
 		varVal.value = value;
+		}
 		varVal.type = type;
+
+		if(varVal.type.equalsIgnoreCase("int") && varVal.value == null){
+			varVal.value = 0;
+		}
 
 		return varVal;
 	}
@@ -709,7 +698,7 @@ public class CFG {
 		ConstantPoolGen cp = cg.getConstantPool();
 
 		// Search for main method.
-		System.out.println("Searching for entry method:");
+		// System.out.println("Searching for entry method:");
 		Method mainMethod = null;
 		ArrayList<CFG_Graph> cfg_graphList = new ArrayList<CFG_Graph>();
 
@@ -727,9 +716,9 @@ public class CFG {
 			}
 
 			// Create CFG.
-			System.out.println("Creating CFG object.");
+			// System.out.println("Creating CFG object.");
 
-			System.out.println("CODE: \n\n");
+			// System.out.println("CODE: \n\n");
 
 			InstructionList instList = new InstructionList(mainMethod.getCode()
 					.getCode());
@@ -754,7 +743,7 @@ public class CFG {
 			// ArrayList<InstructionHandle>();
 			ArrayList<ArrayList<InstructionHandle>> graph = new ArrayList<ArrayList<InstructionHandle>>();
 			ArrayList<InstructionHandle> nodes = new ArrayList<InstructionHandle>();
-			System.out.println("entry -> 0;");
+			// System.out.println("entry -> 0;");
 			fwr.write("\n" + "entry -> 0;");
 
 			// System.out.println("Method "+mainMethod.getName());

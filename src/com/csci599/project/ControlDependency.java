@@ -54,9 +54,10 @@ public class ControlDependency {
 						// System.out.println("Finding path");
 						path = DFS(pdNodes, LCA, B);
 						if (LCA == A) {
+							System.out.println("REMOVED A");
 							path.remove(LCA);
 						} else if (A.parent == LCA) {
-
+							System.out.println("LCA IS PARENT");
 						} else {
 							// System.out.println("No case matched A = "
 							// + A.nodeNumber + " A.parent = "
@@ -67,15 +68,39 @@ public class ControlDependency {
 						// System.out.println("NO LCA FOUND");
 					}
 
+					if(A.nodeName.getPosition() > B.nodeName.getPosition()){
+						System.out.println("A > B");
+						path = DFS(pdNodes, A, B);
+					}else{
+						
+					}
+					
+					System.out.println("LCA: "+LCA.name+" "+LCA.nodeName);
+					System.out.println("Edge: "+edge.get(0)+"-->"+edge.get(1));
+
+					System.out.println("Number of nodes on path: "+path.size());
 					if (path != null) {
 						for (PostDominatorNode pdNode : path) {
 							// System.out.println(pdNode.nodeNumber + "--->");
+							System.out.println("Node on path: "+pdNode.nodeName);
 
 							for (PostDominatorNode pDN : pdNodes) {
+								
+								//if(pDN.nodeName.getPosition() == 486){
+								//	System.out.println("Number of PDs for "+pDN.nodeName+" "+pDN.post_dominators.size());
+								//	System.out.println("Parent of "+pDN.nodeName +" "+pDN.parent.nodeName);	
+								//}
 								if (pDN.nodeNumber == pdNode.nodeNumber) {
+									
 									if (!pDN.controlDependencyList.contains(A)
 											&& !pDN.children.contains(A)) {
+										
+										if(pDN.nodeName.getPosition() == 486){
+											System.out.println("=================================================Adding to 486");
+										}
 										pDN.controlDependencyList.add(A);
+										if(pDN.nodeName.getPosition() == 486)
+										System.out.println("Added "+A.nodeName+" "+A.name+" to CD list of "+pDN.nodeName);
 									}
 								}
 							}
@@ -144,9 +169,9 @@ public class ControlDependency {
 	public Nodes getLCA(Nodes node1, Nodes node2) {
 		ArrayList<Nodes> commonParents = intersection(node1.post_dominators,
 				node2.post_dominators);
-		// System.out.println("First Node " + commonParents.get(0).nodeName
-		// + " Last Node "
-		// + commonParents.get(commonParents.size() - 1).nodeName);
+		 System.out.println("First Node " + commonParents.get(1).nodeName
+		 + " Last Node "
+		 + commonParents.get(commonParents.size() - 1).nodeName);
 		// System.out.println("LCA: "
 		// + commonParents.get(commonParents.size() - 1).nodeName
 		// + " Name " + commonParents.get(commonParents.size() - 1).name);
