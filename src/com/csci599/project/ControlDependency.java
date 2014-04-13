@@ -113,13 +113,14 @@ public class ControlDependency {
 		return pdNodes;
 	}
 
-	public ArrayList<PostDominatorNode> DFS(
+	
+	public ArrayList<PostDominatorNode> DFS_backup(
 			ArrayList<PostDominatorNode> postDomNodes, PostDominatorNode start,
 			PostDominatorNode target) {
 		ArrayList<PostDominatorNode> searchQueue = new ArrayList<PostDominatorNode>();
 		ArrayList<PostDominatorNode> popped = new ArrayList<PostDominatorNode>();
 		ArrayList<PostDominatorNode> path = new ArrayList<PostDominatorNode>();
-
+		System.out.println("Start: "+start.nodeName+" Target: "+target.nodeName);
 		searchQueue.add(start);
 
 		while (searchQueue.get(0) != target) {
@@ -131,6 +132,65 @@ public class ControlDependency {
 					path.add(searchQueue.get(0));
 				}
 				searchQueue.addAll(0, searchQueue.get(0).children);
+				if(start.nodeName.getPosition() == 852 && target.nodeName.getPosition() == 476){
+					System.out.println("Added following children for node: "+searchQueue.get(0).nodeName);
+					for(PostDominatorNode pn : searchQueue.get(0).children){
+						System.out.print(pn.nodeName.getPosition()+" , ");
+					}
+					System.out.println();
+				}
+			} else {
+				if (path.contains(searchQueue.get(0))) {
+					path.remove(searchQueue.get(0));
+				}
+				searchQueue.remove(0);
+
+			}
+			if (searchQueue.size() == 0) {
+				break;
+			}
+		}
+		if (searchQueue.get(0) == target) {
+			path.add(searchQueue.get(0));
+		}
+
+		// System.out.println("Path : ");
+		// for (PostDominatorNode pdNode : path) {
+		// System.out.println(pdNode.nodeNumber + "--->");
+		// }
+
+		return path;
+	}
+
+	public ArrayList<PostDominatorNode> DFS(
+			ArrayList<PostDominatorNode> postDomNodes, PostDominatorNode start,
+			PostDominatorNode target) {
+		ArrayList<PostDominatorNode> searchQueue = new ArrayList<PostDominatorNode>();
+		ArrayList<PostDominatorNode> popped = new ArrayList<PostDominatorNode>();
+		ArrayList<PostDominatorNode> path = new ArrayList<PostDominatorNode>();
+		System.out.println("Start: "+start.nodeName+" Target: "+target.nodeName);
+		searchQueue.add(start);
+
+		while (searchQueue.get(0) != target) {
+
+			if (!popped.contains(searchQueue.get(0))) {
+				popped.add(searchQueue.get(0));
+				if (searchQueue.get(0).children.size() > 0) {
+					path.add(searchQueue.get(0));
+				}
+				
+				if(start.nodeName.getPosition() == 852 && target.nodeName.getPosition() == 476){
+					 System.out.println("Search queue head "+searchQueue.get(0).nodeNumber+" children: "+searchQueue.get(0).children.size());
+
+					System.out.println("Adding following children for node: "+searchQueue.get(0).nodeName);
+					for(PostDominatorNode pn : searchQueue.get(0).children){
+						System.out.print(pn.nodeName.getPosition()+" , ");
+					}
+					System.out.println();
+				}
+				
+				searchQueue.addAll(0, searchQueue.get(0).children);
+				
 			} else {
 				if (path.contains(searchQueue.get(0))) {
 					path.remove(searchQueue.get(0));

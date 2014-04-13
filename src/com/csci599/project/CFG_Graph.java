@@ -15,6 +15,7 @@ class CFG_Graph {
 	Method method;
 	ArrayList<Nodes> nodes;
 	SortedMap<Integer, Nodes> nodesMap;//Map from node position to node
+	ArrayList<BasicBlock> basicBlocks;
 
 	ArrayList<ArrayList<InstructionHandle>> edges; //Inner list is of size 2. Check for nulls (EXIT) in TO part.
 	SortedMap<Integer, ArrayList<Nodes> > edgesMap; //Map from node position to list of children.
@@ -31,6 +32,8 @@ class CFG_Graph {
 	ArrayList<TestCaseToEdges> testCaseToEdge;
 	LineNumberTable lineNumberTable;
 	LocalVariableTable localVariableTable;
+	
+	SortedMap<Integer, BasicBlock> basicBlockMap; //block start to block
 
 	public CFG_Graph() {
 		constantPool = null;
@@ -41,7 +44,10 @@ class CFG_Graph {
 		method = new Method();
 		nodes = new ArrayList<Nodes>();
 		nodesMap = new TreeMap<Integer, Nodes>();
+		basicBlockMap = new TreeMap<Integer, BasicBlock>();
+
 		edges = new ArrayList<ArrayList<InstructionHandle>>();
+		basicBlocks = new ArrayList<BasicBlock>();
 		edgesMap = new TreeMap<Integer, ArrayList<Nodes>>();
 		byteCode_to_sourceCode_mapping = new TreeMap<Integer, Integer>();
 		servletStats = new ArrayList<LineHitsForEachServlet>();

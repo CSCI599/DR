@@ -3,9 +3,15 @@ package com.csci599.project;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
+import java.util.Map;
+import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.Map.Entry;
 
+import org.apache.bcel.generic.GotoInstruction;
+import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.InstructionHandle;
 
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
@@ -35,6 +41,7 @@ public class Runner {
 				mainGraph = graph;
 			}
 
+			
 			// System.out.println("Graph " + i + " byte code mapping length: "
 			// + graph.byteCode_to_sourceCode_mapping.size());
 			i++;
@@ -67,6 +74,52 @@ public class Runner {
 
 		System.out.println("Dotty File generated at: " + outputDottyPath);
 
+		
+		BlockMaker bMaker = new BlockMaker();
+		System.out.println("Total Nodes "+mainGraph.nodes.size());
+
+		ArrayList<BasicBlock> basicBlocks = bMaker.makeBlockFromNodes(mainGraph.nodes);
+		System.out.println("Total Blocks: "+basicBlocks.size());
+		SortedMap<Integer, BasicBlock> basicBlockMap = new TreeMap<Integer, BasicBlock>();
+
+		for(BasicBlock block : basicBlocks){
+			basicBlockMap.put(block.start, block);
+		}
+		
+		for(BasicBlock block : basicBlocks){
+			int parent = block.start;
+			if(mainGraph.nodesMap.get(block.end).nodeName.getInstruction() instanceof GotoInstruction){
+				int child = ((GotoInstruction)mainGraph.nodesMap.get(block.end).nodeName.getInstruction()).getTarget().getPosition();
+				block.children.add(child);
+				basicBlockMap.get(child).parents.add(parent);
+
+			} else if(mainGraph.nodesMap.get(block.end).nodeName.getInstruction() instanceof IfInstruction){
+
+				int child1 = ((IfInstruction)mainGraph.nodesMap.get(block.end).nodeName.getInstruction()).getTarget().getPosition();
+				int child2 = mainGraph.nodesMap.get(block.end).nodeName.getNext().getPosition();
+				block.children.add(child1);
+				block.children.add(child2);
+				
+				basicBlockMap.get(child1).parents.add(parent);
+				basicBlockMap.get(child2).parents.add(parent);
+				
+				
+			}
+		}
+		
+		System.out.println("Basic Block Details");
+		for(BasicBlock block : basicBlocks){
+			System.out.println("Block Number: "+block.blockNumber);
+			System.out.print("\nStart: "+block.start+" End: "+block.end+"\n");
+			System.out.println("Parents : "+block.parents.size());
+			System.out.println("Children : "+block.children.size());
+			System.out.println();
+		}
+		
+		mainGraph.basicBlocks = basicBlocks;
+		mainGraph.basicBlockMap = basicBlockMap;
+		System.exit(0);
+		
 		for (Nodes node : mainGraph.nodes) {
 			// System.out.println("Parents of "+node.nodeName+" = "+node.parents.size());
 			if (node.nodeName != null) {
