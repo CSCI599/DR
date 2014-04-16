@@ -35,13 +35,13 @@ public class Runner {
 
 		// System.out.println("CFG Size: " + graphs.size());
 		int i = 1;
+		String methodName = "Recommended_Show";
 		CFG_Graph mainGraph = new CFG_Graph();
 		for (CFG_Graph graph : graphs) {
-			if (graph.method.getName().equalsIgnoreCase("Recommended_Show")) {
+			if (graph.method.getName().equalsIgnoreCase(methodName)) {
 				mainGraph = graph;
 			}
 
-			
 			// System.out.println("Graph " + i + " byte code mapping length: "
 			// + graph.byteCode_to_sourceCode_mapping.size());
 			i++;
@@ -64,8 +64,8 @@ public class Runner {
 				}
 			}
 
-			System.out.println("Method: " + graph.method.getName());
-			if (graph.method.getName().equalsIgnoreCase("Recommended_Show")) {
+			// System.out.println("Method: " + graph.method.getName());
+			if (graph.method.getName().equalsIgnoreCase(methodName)) {
 				System.out.println("Code: "
 						+ graph.method.getCode().toString(true));
 			}
@@ -74,327 +74,198 @@ public class Runner {
 
 		System.out.println("Dotty File generated at: " + outputDottyPath);
 
-		
 		BlockMaker bMaker = new BlockMaker();
-		System.out.println("Total Nodes "+mainGraph.nodes.size());
+		// System.out.println("Total Nodes " + mainGraph.nodes.size());
 
-		ArrayList<BasicBlock> basicBlocks = bMaker.makeBlockFromNodes(mainGraph.nodes);
-		System.out.println("Total Blocks: "+basicBlocks.size());
+		ArrayList<BasicBlock> basicBlocks = bMaker
+				.makeBlockFromNodes(mainGraph.nodes);
+		// System.out.println("Total Blocks: " + basicBlocks.size());
 		SortedMap<Integer, BasicBlock> basicBlockMap = new TreeMap<Integer, BasicBlock>();
 
-		for(BasicBlock block : basicBlocks){
+		for (BasicBlock block : basicBlocks) {
 			basicBlockMap.put(block.start, block);
 		}
-		
-		for(BasicBlock block : basicBlocks){
-			int parent = block.start;
-			if(mainGraph.nodesMap.get(block.end).nodeName.getInstruction() instanceof GotoInstruction){
-				int child = ((GotoInstruction)mainGraph.nodesMap.get(block.end).nodeName.getInstruction()).getTarget().getPosition();
+
+		for (BasicBlock block : basicBlocks) {
+			BasicBlock parent = block;
+			if (mainGraph.nodesMap.get(block.end).nodeName.getInstruction() instanceof GotoInstruction) {
+				BasicBlock child = basicBlockMap
+						.get(((GotoInstruction) mainGraph.nodesMap
+								.get(block.end).nodeName.getInstruction())
+								.getTarget().getPosition());
 				block.children.add(child);
-				basicBlockMap.get(child).parents.add(parent);
+				basicBlockMap.get(child.start).parents.add(parent);
 
-			} else if(mainGraph.nodesMap.get(block.end).nodeName.getInstruction() instanceof IfInstruction){
+			} else if (mainGraph.nodesMap.get(block.end).nodeName
+					.getInstruction() instanceof IfInstruction) {
 
-				int child1 = ((IfInstruction)mainGraph.nodesMap.get(block.end).nodeName.getInstruction()).getTarget().getPosition();
-				int child2 = mainGraph.nodesMap.get(block.end).nodeName.getNext().getPosition();
+				BasicBlock child1 = basicBlockMap
+						.get(((IfInstruction) mainGraph.nodesMap.get(block.end).nodeName
+								.getInstruction()).getTarget().getPosition());
+				BasicBlock child2 = basicBlockMap.get(mainGraph.nodesMap
+						.get(block.end).nodeName.getNext().getPosition());
 				block.children.add(child1);
 				block.children.add(child2);
-				
-				basicBlockMap.get(child1).parents.add(parent);
-				basicBlockMap.get(child2).parents.add(parent);
-				
-				
+
+				basicBlockMap.get(child1.start).parents.add(parent);
+				basicBlockMap.get(child2.start).parents.add(parent);
+
+			} else {
+				if (block.start != basicBlocks.get(basicBlocks.size() - 1).start) {
+					// System.out.println("Block: " + block.start);
+					BasicBlock child = basicBlockMap.get(mainGraph.nodesMap
+							.get(block.end).nodeName.getNext().getPosition());
+					block.children.add(child);
+					basicBlockMap.get(child.start).parents.add(parent);
+				}
 			}
 		}
-		
-		System.out.println("Basic Block Details");
-		for(BasicBlock block : basicBlocks){
-			System.out.println("Block Number: "+block.blockNumber);
-			System.out.print("\nStart: "+block.start+" End: "+block.end+"\n");
-			System.out.println("Parents : "+block.parents.size());
-			System.out.println("Children : "+block.children.size());
-			System.out.println();
+
+		/*
+		 * System.out.println("Basic Block Details"); for (BasicBlock block :
+		 * basicBlocks) { System.out.println("Block Number: " +
+		 * block.blockNumber); System.out.print("\nStart: " + block.start +
+		 * " End: " + block.end + "\n"); System.out.println("Parents : "); for
+		 * (BasicBlock par : block.parents) { System.out.print(par.start +
+		 * ", "); } //System.out.println; System.out.println("Children : "); for
+		 * (BasicBlock child : block.children) { System.out.print(child.start +
+		 * ", "); } //System.out.println; }
+		 */
+		ArrayList<ArrayList<BasicBlock>> blockEdges = new ArrayList<ArrayList<BasicBlock>>();
+		for (BasicBlock block : basicBlocks) {
+			if (block.children.size() != 0) {
+				for (BasicBlock child : block.children) {
+					ArrayList<BasicBlock> blockEdge = new ArrayList<BasicBlock>();
+					blockEdge.add(block);
+					blockEdge.add(child);
+					blockEdges.add(blockEdge);
+
+				}
+			}
 		}
-		
+
 		mainGraph.basicBlocks = basicBlocks;
 		mainGraph.basicBlockMap = basicBlockMap;
-		System.exit(0);
-		
-		for (Nodes node : mainGraph.nodes) {
-			// System.out.println("Parents of "+node.nodeName+" = "+node.parents.size());
-			if (node.nodeName != null) {
-				node.nodeNumber = node.nodeName.getPosition();
-			} else {
-				node.nodeNumber = -2;
-			}
-		}
+		mainGraph.blockEdges = blockEdges;
 
 		Dominator dom = new Dominator();
-
-		mainGraph = dom.getDominatorTreeForCFG(mainGraph);
-
-		// for (int key : mainGraph.nodesMap.keySet()) {
-		// System.out.println("Key: " + key + " Value: "
-		// + mainGraph.nodesMap.get(key).nodeName);
-		// }
-
-		// System.out.println("Before reversal");
-		// System.out.println("Node " + mainGraph.nodes.get(1).nodeName
-		// + " has child "
-		// + mainGraph.nodes.get(1).children.get(0).nodeName);
-		// System.out.println("Node " + mainGraph.nodes.get(1).nodeName
-		// + " has parent "
-		// + mainGraph.nodes.get(1).parents.get(0).nodeName);
-
 		ReverseCFG rev = new ReverseCFG();
-		CFG_Graph mainGraphRev = rev.makeReverseCFG(mainGraph);
-		// System.out.println("After reversal");
-		// System.out.println("Node " + mainGraphRev.nodes.get(1).nodeName
-		// + " has child "
-		// + mainGraphRev.nodes.get(1).children.get(0).nodeName);
-		// System.out.println("Node " + mainGraphRev.nodes.get(1).nodeName
-		// + " has parent "
-		// + mainGraphRev.nodes.get(1).parents.get(0).nodeName);
 
-		java.util.Collections.reverse(mainGraphRev.nodes);
-		mainGraphRev = dom.getPostDominatorTreeForCFG(mainGraphRev);
+		mainGraph = dom.getDominatorTreeForCFGBlocks(mainGraph);
+		ArrayList<BasicBlock> reverseBasicBlocks = (ArrayList<BasicBlock>) mainGraph.basicBlocks
+				.clone();
+		mainGraph.reverseBasicBlocks = reverseBasicBlocks;
+		CFG_Graph mainGraphRev = rev.makeReverseCFGBlocks(mainGraph);
 
-		// System.exit(0);
-		for (Nodes node : mainGraphRev.nodes) {
-			// System.out.println("Node: " + node.nodeName
-			// + " is post-dominated by " + node.post_dominators.size()
-			// + " nodes");
-			// for (Nodes dom1 : node.post_dominators) {
-			// System.out.println(dom1.nodeName + " , ");
-			// }
-		}
-
-		for (Nodes node : mainGraph.nodes) {
-			// System.out.println("Node: " + node.nodeName + " is dominated by "
-			// + node.dominators.size() + " nodes");
-			// for (Nodes dom : node.dominators) {
-			// System.out.println(dom.nodeName + " , ");
-			// }
-
-		}
+		java.util.Collections.reverse(mainGraphRev.reverseBasicBlocks);
+		/*
+		 * for (BasicBlock block : mainGraph.reverseBasicBlocks) {
+		 * System.out.println(block.start + " VISITED: " + block.visited +
+		 * " Parents: " + block.parents.size() + " Children: " +
+		 * block.children.size()); }
+		 */
 		// System.exit(0);
 
-		for (Nodes node : mainGraphRev.nodes) {
+		mainGraphRev = dom.getPostDominatorTreeForCFGBlocks((mainGraphRev));
+
+		for (BasicBlock node : mainGraphRev.basicBlocks) {
 			if (node.post_dominators.contains(node)) {
 				node.post_dominators.remove(node);
 			}
 		}
-
-		NodeToPostDominatorNodeAdapter adapter = new NodeToPostDominatorNodeAdapter();
-		SortedMap<Integer, PostDominatorNode> pdNodesMap = new TreeMap<Integer, PostDominatorNode>();
-		ArrayList<PostDominatorNode> postDomNodes = new ArrayList<PostDominatorNode>();
-		for (Nodes node : mainGraphRev.nodes) {
-			if (node.nodeName != null) {
-				PostDominatorNode pdNode = adapter
-						.convertNodeToPostDominatorNode(node);
-				postDomNodes.add(pdNode);
-
-				if (pdNode.nodeName != null) {
-					pdNodesMap.put(pdNode.nodeName.getPosition(), pdNode);
-				} else {
-					if (pdNode.name.equalsIgnoreCase("Entry")) {
-						pdNodesMap.put(-1, pdNode);
-					} else if (pdNode.name.equalsIgnoreCase("Exit")) {
-						pdNodesMap.put(-2, pdNode);
-					}
-				}
-			}
-		}
-
-		// System.exit(0);
-		// System.out.println("Total Nodes: " + mainGraphRev.nodes.size());
-		// System.out.println("Total PD Nodes: " + postDomNodes.size());
-
-		SortedMap<Integer, ArrayList<PostDominatorNode>> postDominatedNodes = new TreeMap<Integer, ArrayList<PostDominatorNode>>();
-
-		for (PostDominatorNode pdNode : postDomNodes) {
-			// System.out.println("NODE : " + pdNode.nodeName);
-
-			for (Nodes node : pdNode.post_dominators) {
-				PostDominatorNode pdNode1 = null;
-				if (node.nodeName != null) {
-					pdNode1 = pdNodesMap.get(node.nodeName.getPosition());
-					// System.out.println("PD Node : " + pdNode1.nodeName);
-				} else {
-					if (node.name.equalsIgnoreCase("Entry")) {
-						pdNode1 = pdNodesMap.get(-1);
-					} else if (node.name.equalsIgnoreCase("Exit")) {
-						pdNode1 = pdNodesMap.get(-2);
-					} else {
-						// System.out.println("Node: " + node.name);
-					}
-				}
-
-				if (pdNode1 != null) {
-					int key = 0;
-					if (pdNode1.name.equalsIgnoreCase("Entry")) {
-						key = -1;
-					} else if (node.name.equalsIgnoreCase("Exit")) {
-						key = -2;
-					} else {
-						key = pdNode1.nodeName.getPosition();
-					}
-					if (postDominatedNodes.get(key) == null) {
-						ArrayList<PostDominatorNode> pdList = new ArrayList<PostDominatorNode>();
-						pdList.add(pdNode);
-						postDominatedNodes.put(key, pdList);
-					} else {
-						if (!postDominatedNodes.get(key).contains(pdNode)) {
-							postDominatedNodes.get(key).add(pdNode);
-						}
-					}
-					// postDominatedNodes.put(pdNode1, pdNode);
-				} else {
-					// System.out.println("ERROR!!!\nNODE NULL");
-				}
-
-			}
-		}
-
-		for (PostDominatorNode pdNode : postDomNodes) {
-			pdNode.children = postDominatedNodes.get(pdNode.nodeNumber);
-		}
-
-		PostDominatorNode start = null;
-		PostDominatorNode target = null;
-		for (PostDominatorNode pdNode : postDomNodes) {
-
-			if (pdNode.nodeNumber == 526) {
-				start = pdNode;
-			} else if (pdNode.nodeNumber == 119) {
-				target = pdNode;
-			}
-
-			if (pdNode.children == null) {
-				pdNode.children = new ArrayList<PostDominatorNode>();
-			}
-
-			if (pdNode.children != null) {
-				// System.out.println("Node " + pdNode.nodeNumber + "Parent: "
-				// + pdNode.parent.nodeName + " - " + pdNode.parent.name
-				// + " post dominates: " + pdNode.children.size()
-				// + " other nodes");
-			} else {
-				// System.out.println("Node " + pdNode.nodeNumber
-				// + " post dominates NO other nodes");
-			}
-		}
-
-		for (Nodes n : mainGraph.nodes) {
-			if (n.name.equalsIgnoreCase("Exit")) {
-				n.nodeNumber = -2;
-			}
-		}
-		ControlDependency cDep = new ControlDependency();
-		start = null;
-		// System.out.println("Start children: " + start.children.size());
-		// if (start != null && target != null) {
-		// cDep.DFS(postDomNodes, start, target);
-		// } else {
-		// System.out.println("Null START/TARGET");
-		// }
-		ArrayList<PostDominatorNode> pdNodes = cDep.getControlDependency(
-				mainGraph, postDomNodes);
-
 		/*
-		 * for (PostDominatorNode pdNode : pdNodes) { if
-		 * (pdNode.controlDependencyList.size() != 0) {
-		 * //System.out.print("\nNode " // +
-		 * mainGraph.byteCode_to_sourceCode_mapping // .get(pdNode.nodeNumber) +
-		 * "(" // + pdNode.nodeNumber + ")" // + " is control dependent on : ");
-		 * for (PostDominatorNode pDN : pdNode.controlDependencyList) { //
-		 * System.out.print(" " // + mainGraph.byteCode_to_sourceCode_mapping //
-		 * .get(pDN.nodeNumber) + "(" + pDN.nodeNumber // + ")" + " , "); }
-		 * //System.out.println(); } }
-		 */
-
-		// for (Integer key : postDominatedNodes.keySet()) {
-		// if (key >= 496 && key <= 520) {
-
-		// System.out.println("Node " + key + " post dominates: "
-		// + postDominatedNodes.get(key).size() + " other nodes");
-		// for (PostDominatorNode node : postDominatedNodes.get(key)) {
-		// System.out.println(node.nodeName + " NAME: " + node.name);
-		// }
-		// }
-		// }
-		// ControlDependency cDep = new ControlDependency();
-		// cDep.getLCA(mainGraphRev.nodes.get(0), mainGraphRev.nodes.get(1));
-
-		// Run line number 43 in source code, 240 in byte code
-
-		// System.out.println("195 post dominates: ");
-		/*
-		 * for (PostDominatorNode postDomNode : pdNodes) { if
-		 * (postDomNode.nodeNumber == 572) { for (PostDominatorNode child :
-		 * postDomNode.children) { // System.out.println(child.nodeNumber); } }
+		 * for (BasicBlock node : mainGraphRev.basicBlocks) {
+		 * System.out.println("Block: " + node.start + " is post-dominated by "
+		 * + node.post_dominators.size() + " blocks\n"); for (BasicBlock dom1 :
+		 * node.post_dominators) { System.out.print(dom1.start + " , "); }
+		 * //System.out.println; }
+		 * 
+		 * for (BasicBlock node : mainGraph.basicBlocks) {
+		 * System.out.println("Block: " + node.start + " is dominated by " +
+		 * node.dominators.size() + " blocks\n"); for (BasicBlock domi :
+		 * node.dominators) { System.out.print(domi.start + " , "); }
+		 * //System.out.println;
+		 * 
 		 * }
 		 */
-		System.out.println();
-		System.out.println();
+		ControlDependency cDep = new ControlDependency();
+		mainGraph.basicBlocks = cDep.getControlDependencyBlocks(mainGraph);
+
+		/*
+		 * for (BasicBlock node : mainGraph.basicBlocks) {
+		 * System.out.println("\nBlock: " + node.start +
+		 * " is control dependent on " + node.controlDependencyList.size() +
+		 * " blocks: "); for (BasicBlock domi : node.controlDependencyList) {
+		 * System.out.print(domi.start + " , "); } //System.out.println;
+		 * 
+		 * }
+		 */
+		// System.exit(0);
 
 		int pos = -1;
+		int sourceLineNumber = 590;
 		for (int key : mainGraph.byteCode_to_sourceCode_mapping.keySet()) {
-			if (mainGraph.byteCode_to_sourceCode_mapping.get(key) == 590) {
+			if (mainGraph.byteCode_to_sourceCode_mapping.get(key) == sourceLineNumber) {
 				pos = key;
 			}
 		}
-		System.out.println("Node: " + pos + " Source line number: "
-				+ mainGraph.byteCode_to_sourceCode_mapping.get(pos));
-		ArrayList<PostDominatorNode> fullCDList = new ArrayList<PostDominatorNode>();
+		// System.out.println("Node: " + pos + " Source line number: "
+		// + mainGraph.byteCode_to_sourceCode_mapping.get(pos));
+		// ArrayList<PostDominatorNode> fullCDList = new
+		// ArrayList<PostDominatorNode>();
 
-		System.out.println("PD Nodes Size: " + pdNodes.size());
-		for (PostDominatorNode pN : pdNodes) {
-			if (pN.nodeNumber == pos) {
-				// System.out.println("Post dominated children: ");
-				for (PostDominatorNode children : pN.children) {
-					// System.out.println(mainGraph.byteCode_to_sourceCode_mapping
-					// .get(children.nodeNumber));
-				}
-				// System.out.println("Control Dependent nodes: ");
-				fullCDList = cDep.getFullControlDependenceList(pdNodes, pN);
-				for (PostDominatorNode children : fullCDList) {
-					// System.out.println(mainGraph.byteCode_to_sourceCode_mapping
-					// .get(children.nodeNumber));
-				}
-			}
-		}
+		// System.out.println("PD Nodes Size: " + mainGraph.basicBlocks.size());
+
 		ArrayList<InstructionHandle> dependencyList = new ArrayList<InstructionHandle>();
-		for (PostDominatorNode pdNd : pdNodes) {
-			if (pdNd.nodeNumber == pos) {
-				System.out.println("Found");
-				System.out.println("Number of CD nodes: "+pdNd.controlDependencyList.size());
-				for (PostDominatorNode contDep : pdNd.controlDependencyList) {
-					System.out.println("Added");
-					dependencyList.add(contDep.nodeName);
+		for (BasicBlock pdNd : mainGraph.basicBlocks) {
+			// System.out.println("Start: " + pdNd.start + " POS: " + pos
+			// + " End : " + pdNd.end);
+			if (pdNd.start <= pos && pdNd.end >= pos) {
+				// System.out.println("Found");
+				// System.out.println("Number of CD nodes: "
+				// + pdNd.controlDependencyList.size());
+				for (BasicBlock contDep : pdNd.controlDependencyList) {
+					// System.out.println("Added");
+					if (mainGraph.nodesMap.get(contDep.end).nodeName
+							.getInstruction() instanceof IfInstruction) {
+						dependencyList
+								.add(mainGraph.nodesMap.get(contDep.end).nodeName);
+					}
 				}
 			}
 		}
-		System.out.println("Dependencies: " + dependencyList.size());
+		// System.out.println("Dependencies: " + dependencyList.size());
 		ArrayList<DependencyInformation> depList = cfg.dependencyAdapter(
 				dependencyList, pos, mainGraph.localVariableTable,
 				mainGraph.nodes, mainGraph.constantPool);
 
-		System.out.println("Dep List size: " + depList.size());
+		System.out.println("Line " + sourceLineNumber + " depends on : "
+				+ depList.size() + " conditions");
+		System.out.println();
 
 		for (DependencyInformation dep : depList) {
-			System.out.println();
-			System.out.println("Instruction: " + dep.dependencyNode);
-			System.out.println("Must evaluate to : " + dep.true_false);
-			System.out.println("Depends on variable: "
-					+ dep.varVal.variableName);
-			System.out.println("Variable Type: " + dep.varVal.type);
-			System.out.println("For instruction to be TRUE, "
-					+ dep.varVal.variableName + " must be : "
-					+ dep.varVal.value);
-			System.out.println("Source code line number: "
+			// System.out.println;
+			System.out.println("Instruction: "
+					+ dep.dependencyNode
+					+ "(at source line number: "
 					+ mainGraph.byteCode_to_sourceCode_mapping
-							.get(dep.dependencyNode.getPosition()));
+							.get(dep.dependencyNode.getPosition()) + ")");
+
+			System.out.println("Must evaluate to : " + dep.true_false);
+			System.out.println("For instruction to be TRUE: ");
+
+			System.out.print("Variable : " + dep.variables.get(0).variableName
+					+ " (" + dep.variables.get(0).type + ") " + dep.symbol
+					+ " ");
+
+			if (dep.variables.get(1).variableName
+					.equalsIgnoreCase("AutoCreated")) {
+				System.out.println(dep.variables.get(1).value);
+			} else {
+				System.out.println(dep.variables.get(1).variableName + " ("
+						+ dep.variables.get(1).type + ") ");
+			}
+
 			int loc = dep.dependencyNode.getPosition();
 
 			cfg.generateReachingDef(mainGraph.localVariableTable,
@@ -402,20 +273,23 @@ public class Runner {
 
 			Nodes node1 = mainGraph.nodesMap.get(loc);
 			boolean isOutisdeDefn = true;
+
 			for (Definition def : node1.out) {
-				if (def.getVarName().equalsIgnoreCase(dep.varVal.variableName)
-						&& (!def.isOutsideDef())) {
-					isOutisdeDefn = false;
-					System.out
-							.println("The variable "
-									+ dep.varVal.variableName
-									+ " does not come from outside. It is redefined at position: "
-									+ def.getLine());
+				for (VariableValues var : dep.variables) {
+					if (def.getVarName().equalsIgnoreCase(var.variableName)
+							&& (!def.isOutsideDef())) {
+						isOutisdeDefn = false;
+						System.out
+								.println(var.variableName
+										+ " is not an external variable. It is initialized/modified at position: "
+										+ mainGraph.byteCode_to_sourceCode_mapping
+												.get(def.getLine()));
+					}
 				}
 			}
+
 			System.out.println();
 		}
 
 	}
-
 }

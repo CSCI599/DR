@@ -14,12 +14,12 @@ public class BlockMaker {
 		ArrayList<Integer> starters = new ArrayList<Integer>();
 		int start = -1, end = -1, first = -1;
 		int blockNumber = 1;
-		System.out.println("Total Nodes " + nodes.size());
+		// System.out.println("Total Nodes " + nodes.size());
 
 		for (Nodes node : nodes) {
 			if (node.nodeName != null) {
 				first = node.nodeName.getPosition();
-				System.out.println("First = " + first);
+				// System.out.println("First = " + first);
 				starters.add(first);
 
 				break;
@@ -71,15 +71,15 @@ public class BlockMaker {
 							BasicBlock bBlock = new BasicBlock();
 							bBlock.start = start;
 							bBlock.end = end;
-							System.out.println("Start = " + start);
-							System.out.println("End = " + end);
-							System.out.println("=====ENd of REGULAR block====");
+							// System.out.println("Start = " + start);
+							// System.out.println("End = " + end);
+							// System.out.println("=====ENd of REGULAR block====");
 							if (start == first) {
 								bBlock.first = true;
 							}
 							bBlock.blockNumber = blockNumber;
 							blockNumber++;
-							//blockCreated = true;
+							// blockCreated = true;
 							basicBlocks.add(bBlock);
 							start = node.nodeName.getPosition();
 
@@ -96,10 +96,10 @@ public class BlockMaker {
 						BasicBlock bBlock = new BasicBlock();
 						bBlock.start = start;
 						bBlock.end = end;
-						System.out.println("Start = " + start);
+						// System.out.println("Start = " + start);
 
-						System.out.println("End = " + end);
-						System.out.println("=====ENd of GOTO block====");
+						// System.out.println("End = " + end);
+						// System.out.println("=====ENd of GOTO block====");
 						if (start == first) {
 							bBlock.first = true;
 						}
@@ -121,10 +121,10 @@ public class BlockMaker {
 						BasicBlock bBlock = new BasicBlock();
 						bBlock.start = start;
 						bBlock.end = end;
-						System.out.println("Start = " + start);
+						// System.out.println("Start = " + start);
 
-						System.out.println("End = " + end);
-						System.out.println("=====ENd of IF block====");
+						// System.out.println("End = " + end);
+						// System.out.println("=====ENd of IF block====");
 						// start = node.nodeName.getNext().getPosition();
 						if (start == first) {
 							bBlock.first = true;
@@ -143,8 +143,8 @@ public class BlockMaker {
 					}
 				} else if (node.nodeName.getPosition() == nodes.get(nodes
 						.size() - 1).nodeName.getPosition()) {
-					System.out.println("Last block. End = "
-							+ node.nodeName.getPosition());
+					// System.out.println("Last block. End = "
+					// + node.nodeName.getPosition());
 					end = node.nodeName.getPosition();
 					BasicBlock bBlock = new BasicBlock();
 					bBlock.start = start;
