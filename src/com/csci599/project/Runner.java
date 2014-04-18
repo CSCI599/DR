@@ -10,9 +10,17 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.Map.Entry;
 
+import org.apache.bcel.classfile.LocalVariable;
+import org.apache.bcel.generic.ASTORE;
 import org.apache.bcel.generic.GotoInstruction;
+import org.apache.bcel.generic.INVOKESTATIC;
+import org.apache.bcel.generic.INVOKEVIRTUAL;
 import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.InstructionHandle;
+import org.apache.bcel.generic.InvokeInstruction;
+import org.apache.bcel.generic.LDC_W;
+import org.apache.bcel.generic.LoadInstruction;
+import org.apache.bcel.generic.StoreInstruction;
 
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 
@@ -203,7 +211,7 @@ public class Runner {
 		// System.exit(0);
 
 		int pos = -1;
-		int sourceLineNumber = 590;
+		int sourceLineNumber = 523;
 		for (int key : mainGraph.byteCode_to_sourceCode_mapping.keySet()) {
 			if (mainGraph.byteCode_to_sourceCode_mapping.get(key) == sourceLineNumber) {
 				pos = key;
@@ -239,6 +247,135 @@ public class Runner {
 				dependencyList, pos, mainGraph.localVariableTable,
 				mainGraph.nodes, mainGraph.constantPool);
 
+		SortedMap<String, String> int_ext_var = new TreeMap<String, String>();
+		ArrayList<Integer> ext_var_index = new ArrayList<Integer>();
+		org.apache.bcel.classfile.LocalVariable[] localVariables = mainGraph.localVariableTable
+				.getLocalVariableTable();
+		for (int j = 0; j < mainGraph.nodes.size(); j++) {
+			Nodes node = mainGraph.nodes.get(j);
+			Nodes n1 = null;
+			Nodes n2 = null;
+
+			if (node.nodeName != null
+					&& node.nodeName.getInstruction() instanceof StoreInstruction) {
+				if (j > 1) {
+					n1 = mainGraph.nodes.get(j - 1);
+					n2 = mainGraph.nodes.get(j - 2);
+				}
+				if (n1 != null && n2 != null) {
+					// System.out.println("N1 "+n1.nodeName);
+					// System.out.println("N2 "+n2.nodeName);
+					// System.out.println("Node "+node.nodeName);
+					// System.out.println();
+					if (n1.nodeName != null && n2.nodeName != null) {
+						if (n1.nodeName.getInstruction() instanceof INVOKEVIRTUAL) {
+							String mtName = ((INVOKEVIRTUAL) n1.nodeName
+									.getInstruction())
+									.getMethodName(mainGraph.constantPool);
+							if (mtName.equalsIgnoreCase("getparam")) {
+
+								if (n2.nodeName.getInstruction() instanceof LDC_W) {
+									/*
+									 * System.out.println("InvokeStatic: " +
+									 * ((INVOKEVIRTUAL) n1.nodeName
+									 * .getInstruction
+									 * ()).getMethodName(mainGraph
+									 * .constantPool)); System.out
+									 * .println("LDC " + ((LDC_W) n2.nodeName
+									 * .getInstruction())
+									 * .getValue(mainGraph.constantPool));
+									 */
+
+									int index = ((StoreInstruction) node.nodeName
+											.getInstruction()).getIndex();
+									String external_var = ((LDC_W) n2.nodeName
+											.getInstruction()).getValue(
+											mainGraph.constantPool).toString();
+									// int ext_var_pos = ((LDC_W)
+									// n2.nodeName.getInstruction()).getIndex();
+									ext_var_index.add(index);
+									for (LocalVariable var : localVariables) {
+										if (index == var.getIndex()) {
+											// System.out.println("Variable: "+var.getName());
+											int_ext_var.put(var.getName(),
+													external_var);
+										}
+									}
+
+									// System.out.println("Node: "+node.nodeName.getInstruction().getName());
+
+									// System.out.println();
+								}
+							}
+						}
+					}
+				}
+				// System.out.println(node.nodeName);
+			}
+
+		}
+
+		/*
+		 * Load followed by Store OR Load ->Invoke->Store
+		 */
+		for (int j = 0; j < mainGraph.nodes.size(); j++) {
+			Nodes node = mainGraph.nodes.get(j);
+			Nodes n1 = null;
+			Nodes n2 = null;
+
+			if (node.nodeName != null
+					&& node.nodeName.getInstruction() instanceof LoadInstruction) {
+				int index = ((LoadInstruction) node.nodeName.getInstruction())
+						.getIndex();
+				if (ext_var_index.contains(index)) {
+					n1 = mainGraph.nodes.get(j + 1);
+					n2 = mainGraph.nodes.get(j + 2);
+					String ext_var = null;
+					String int_var = null;
+
+					for (LocalVariable var : localVariables) {
+						if (index == var.getIndex()) {
+							ext_var = var.getName();
+						}
+					}
+
+					if (n1.nodeName != null) {
+						if (n1.nodeName.getInstruction() instanceof InvokeInstruction) {
+							if (n2.nodeName != null
+									&& n2.nodeName.getInstruction() instanceof StoreInstruction) {
+								int index2 = ((StoreInstruction) n2.nodeName
+										.getInstruction()).getIndex();
+								for (LocalVariable var : localVariables) {
+									if (index2 == var.getIndex()) {
+										int_var = var.getName();
+									}
+								}
+							}
+						} else if (n1.nodeName.getInstruction() instanceof StoreInstruction) {
+							int index2 = ((StoreInstruction) n1.nodeName
+									.getInstruction()).getIndex();
+							for (LocalVariable var : localVariables) {
+								if (index2 == var.getIndex()) {
+									int_var = var.getName();
+								}
+							}
+						}
+					}
+
+					if (ext_var != null && int_var != null) {
+						int_ext_var.put(int_var, ext_var);
+					}
+				}
+			}
+		}
+
+		mainGraph.internal_external_variables = int_ext_var;
+		/*
+		 * for (int key : ext_var_index) { System.out.println("Var Index: " +
+		 * key); }
+		 */
+
+		// System.exit(0);
 		System.out.println("Line " + sourceLineNumber + " depends on : "
 				+ depList.size() + " conditions");
 		System.out.println();
@@ -290,6 +427,9 @@ public class Runner {
 
 			System.out.println();
 		}
-
+		System.out.println("From ----> To");
+		for (String key : int_ext_var.keySet()) {
+			System.out.println(int_ext_var.get(key) + "---->" + key);
+		}
 	}
 }

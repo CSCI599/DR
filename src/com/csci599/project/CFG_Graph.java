@@ -23,6 +23,8 @@ class CFG_Graph {
 	ConstantPoolGen constantPool;
 
 	SortedMap<Integer, Integer> byteCode_to_sourceCode_mapping;
+	SortedMap<String, String> internal_external_variables;
+
 	ArrayList<LineHitsForEachServlet> servletStats;
 	ArrayList<EdgesHit> edgesTraversed;
 	ArrayList<Integer> testCases;
@@ -57,6 +59,7 @@ class CFG_Graph {
 
 		edgesMap = new TreeMap<Integer, ArrayList<Nodes>>();
 		byteCode_to_sourceCode_mapping = new TreeMap<Integer, Integer>();
+		internal_external_variables = new TreeMap<String, String>();
 		servletStats = new ArrayList<LineHitsForEachServlet>();
 		edgesTraversed = new ArrayList<EdgesHit>();
 		testCases = new ArrayList<Integer>();
