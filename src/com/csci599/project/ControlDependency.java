@@ -125,8 +125,8 @@ public class ControlDependency {
 
 		ArrayList<BasicBlock> pdNodes = cfg.basicBlocks;
 		for (ArrayList<BasicBlock> edge : cfg.blockEdges) {
-			//System.out.println("Edge: " + edge.get(0).start + "-->"
-			//		+ edge.get(1).start);
+			// System.out.println("Edge: " + edge.get(0).start + "-->"
+			// + edge.get(1).start);
 
 			BasicBlock lca = null;
 			BasicBlock LCA = null;
@@ -143,8 +143,8 @@ public class ControlDependency {
 					// }
 
 					if (lca == null) {
-						//System.out.println("2) NO LCA FOUND for " + a.start
-						//		+ " and " + b.start);
+						// System.out.println("2) NO LCA FOUND for " + a.start
+						// + " and " + b.start);
 					}
 					// System.out.println("3) a = " + a.nodeNumber + " b = "
 					// + b.nodeNumber + " lca = " + lca.nodeNumber);
@@ -170,35 +170,40 @@ public class ControlDependency {
 					ArrayList<BasicBlock> path = null;
 					if (LCA != null) {
 						// System.out.println("Finding path");
+						System.out.println("Edge: " + edge.get(0).start + "-->"
+								+ edge.get(1).start);
+						System.out.println("LCA: " + LCA.start);
 						path = DFS_Block(pdNodes, LCA, B);
 						if (LCA == A) {
-							//System.out.println("LCA is A, REMOVED A");
+							System.out.println("LCA is A, REMOVED A");
 							path.remove(LCA);
-						} else if (A.parents.contains(LCA)) {
-							//System.out.println("LCA IS PARENT");
+						} else if (A.post_dominators.contains(LCA)) {
+							System.out.println("LCA IS PARENT");
 						} else {
-							//System.out.println("No case matched A = " + A.start
-							//		+ "B = " + B.start + " LCA = " + LCA.start);
+							System.out.println("No case matched A = " + A.start
+									+ "B = " + B.start + " LCA = " + LCA.start);
 						}
-						//System.out.println("LCA: " + LCA.start);
 
 					} else {
-						//System.out.println("NO LCA FOUND");
+						System.out.println("Edge: " + edge.get(0).start + "-->"
+								+ edge.get(1).start);
+						System.out.println("NO LCA FOUND");
 					}
 
 					if (A.start > B.start) {
-						//System.out.println("A > B");
+						// System.out.println("A > B");
 						path = DFS_Block(pdNodes, A, B);
 					} else {
 
 					}
 
-					//System.out.println("Number of nodes on path: "
-					//		+ path.size());
+					// System.out.println("Number of nodes on path: "
+					// + path.size());
 					if (path != null) {
 						for (BasicBlock pdNode : path) {
 							// System.out.println(pdNode.nodeNumber + "--->");
-							//System.out.println("Node on path: " + pdNode.start);
+							// System.out.println("Node on path: " +
+							// pdNode.start);
 
 							for (BasicBlock pDN : pdNodes) {
 
@@ -207,12 +212,14 @@ public class ControlDependency {
 								// System.out.println("Parent of "+pDN.nodeName
 								// +" "+pDN.parent.nodeName);
 								// }
-								if (pDN.start == pdNode.start && pDN.start != LCA.start) {
-									//System.out.println("Checking "+pDN.start);
-									if (!pDN.controlDependencyList.contains(A)) {//&& !pDN.children.contains(A)
+								if (pDN.start == pdNode.start
+										&& pDN.start != LCA.start) {
+									// System.out.println("Checking "+pDN.start);
+									if (!pDN.controlDependencyList.contains(A)) {// &&
+																					// !pDN.children.contains(A)
 										pDN.controlDependencyList.add(A);
-										//System.out.println("Added "+A.start+" to the CD list of "+pDN.start);
-										
+										// System.out.println("Added "+A.start+" to the CD list of "+pDN.start);
+
 									}
 								}
 							}
@@ -221,8 +228,8 @@ public class ControlDependency {
 				}
 			}
 
-			//System.out.println;
-			//System.out.println;
+			// System.out.println;
+			// System.out.println;
 		}
 
 		return pdNodes;
@@ -254,7 +261,7 @@ public class ControlDependency {
 					for (PostDominatorNode pn : searchQueue.get(0).children) {
 						System.out.print(pn.nodeName.getPosition() + " , ");
 					}
-					//System.out.println;
+					// System.out.println;
 				}
 			} else {
 				if (path.contains(searchQueue.get(0))) {
@@ -308,7 +315,7 @@ public class ControlDependency {
 					for (PostDominatorNode pn : searchQueue.get(0).children) {
 						System.out.print(pn.nodeName.getPosition() + " , ");
 					}
-					//System.out.println;
+					// System.out.println;
 				}
 
 				searchQueue.addAll(0, searchQueue.get(0).children);
@@ -341,8 +348,8 @@ public class ControlDependency {
 		ArrayList<BasicBlock> searchQueue = new ArrayList<BasicBlock>();
 		ArrayList<BasicBlock> popped = new ArrayList<BasicBlock>();
 		ArrayList<BasicBlock> path = new ArrayList<BasicBlock>();
-		//System.out
-		//		.println("Start: " + start.start + " Target: " + target.start);
+		// System.out
+		// .println("Start: " + start.start + " Target: " + target.start);
 		searchQueue.add(start);
 
 		while (searchQueue.get(0) != target) {
@@ -354,16 +361,16 @@ public class ControlDependency {
 				}
 
 				if (start.start == 852 && target.start == 476) {
-					//System.out.println("Search queue head "
-					//		+ searchQueue.get(0).start + " children: "
-					//		+ searchQueue.get(0).children.size());
+					// System.out.println("Search queue head "
+					// + searchQueue.get(0).start + " children: "
+					// + searchQueue.get(0).children.size());
 
-					//System.out.println("Adding following children for node: "
-					//		+ searchQueue.get(0).start);
+					// System.out.println("Adding following children for node: "
+					// + searchQueue.get(0).start);
 					for (BasicBlock pn : searchQueue.get(0).children) {
-						//System.out.print(pn.start + " , ");
+						// System.out.print(pn.start + " , ");
 					}
-					//System.out.println;
+					// System.out.println;
 				}
 
 				searchQueue.addAll(0, searchQueue.get(0).children);
@@ -406,9 +413,9 @@ public class ControlDependency {
 	public Nodes getLCA(Nodes node1, Nodes node2) {
 		ArrayList<Nodes> commonParents = intersection(node1.post_dominators,
 				node2.post_dominators);
-		//System.out.println("First Node " + commonParents.get(1).nodeName
-		//		+ " Last Node "
-		//		+ commonParents.get(commonParents.size() - 1).nodeName);
+		// System.out.println("First Node " + commonParents.get(1).nodeName
+		// + " Last Node "
+		// + commonParents.get(commonParents.size() - 1).nodeName);
 		// System.out.println("LCA: "
 		// + commonParents.get(commonParents.size() - 1).nodeName
 		// + " Name " + commonParents.get(commonParents.size() - 1).name);
@@ -416,13 +423,13 @@ public class ControlDependency {
 	}
 
 	public BasicBlock getLCA_Block(BasicBlock node1, BasicBlock node2) {
-		//System.out.println("A = " + node1.start + " B = " + node2.start);
-		//System.out.println("Parent = ");
+		// System.out.println("A = " + node1.start + " B = " + node2.start);
+		// System.out.println("Parent = ");
 
 		for (BasicBlock par : node2.parents) {
-			//System.out.print(par.start + " , ");
+			// System.out.print(par.start + " , ");
 			if (par.start == node1.start) {
-				//System.out.println(node2.start + " contains " + node1.start);
+				// System.out.println(node2.start + " contains " + node1.start);
 				return node1;
 			}
 		}
@@ -432,16 +439,16 @@ public class ControlDependency {
 		// System.out.println("First Node " + commonParents.get(0).start
 		// + " Last Node "
 		// + commonParents.get(commonParents.size() - 1).start);
-		//System.out.println("Common Parents: ");
+		// System.out.println("Common Parents: ");
 		BasicBlock lca = commonParents.get(0);
 		for (BasicBlock block : commonParents) {
-			//System.out.print(block.start + " , ");
+			// System.out.print(block.start + " , ");
 			if (block.start < lca.start) {
 				lca = block;
 			}
 
 		}
-		//System.out.println;
+		// System.out.println;
 		// System.out.println("LCA: "
 		// + commonParents.get(commonParents.size() - 1).nodeName
 		// + " Name " + commonParents.get(commonParents.size() - 1).name);

@@ -37,6 +37,7 @@ import org.apache.bcel.generic.IF_ICMPLE;
 import org.apache.bcel.generic.IF_ICMPLT;
 import org.apache.bcel.generic.IF_ICMPNE;
 import org.apache.bcel.generic.ILOAD;
+import org.apache.bcel.generic.INVOKEVIRTUAL;
 import org.apache.bcel.generic.ISTORE;
 import org.apache.bcel.generic.IfInstruction;
 import org.apache.bcel.generic.Instruction;
@@ -266,30 +267,31 @@ public class CFG {
 					// Ignore branch
 				}
 			}
-			//System.out.println(independentConditions.size()
-			//		+ " independent conditions out of "
-			//		+ reachabilityByBranchStatements.size());
+			// System.out.println(independentConditions.size()
+			// + " independent conditions out of "
+			// + reachabilityByBranchStatements.size());
 			conditionsToSatisfy.removeAll(independentConditions);
 
 		}
 		return conditionsToSatisfy;
 	}
 
-	public ArrayList<VariableValues> getVariablesForCondition(InstructionHandle condition,
-			LocalVariableTable table, ArrayList<Nodes> nodes,
-			ConstantPoolGen constantPool) {
+	public ArrayList<VariableValues> getVariablesForCondition(
+			InstructionHandle condition, LocalVariableTable table,
+			ArrayList<Nodes> nodes, ConstantPoolGen constantPool) {
 		org.apache.bcel.classfile.LocalVariable[] localVariables = table
 				.getLocalVariableTable();
 
 		ArrayList<InstructionHandle> conditions = new ArrayList<InstructionHandle>();
 
-		//System.out.println("Condition: " + condition);
-		//System.out.println;
+		// System.out.println("Condition: " + condition);
+		// System.out.println;
 		for (int i = 0; i < nodes.size(); i++) {
 
 			if (nodes.get(i).nodeName.getPosition() == condition.getPosition()) {
 
-				if (nodes.get(i).nodeName.getInstruction() instanceof IF_ICMPNE
+				if (nodes.get(i).nodeName.getInstruction() instanceof IF_ICMPEQ
+						|| nodes.get(i).nodeName.getInstruction() instanceof IF_ICMPNE
 						|| nodes.get(i).nodeName.getInstruction() instanceof IFNONNULL
 						|| nodes.get(i).nodeName.getInstruction() instanceof IF_ICMPGT
 						|| nodes.get(i).nodeName.getInstruction() instanceof IF_ICMPLT
@@ -298,7 +300,7 @@ public class CFG {
 						|| nodes.get(i).nodeName.getInstruction() instanceof IFEQ
 						|| nodes.get(i).nodeName.getInstruction() instanceof IFNE
 						|| nodes.get(i).nodeName.getInstruction() instanceof org.apache.bcel.generic.TABLESWITCH) {
-					//System.out.println("First Passed");
+					// System.out.println("First Passed");
 					int j = 1;
 					boolean added = true;
 					while (j <= 4) {
@@ -313,9 +315,9 @@ public class CFG {
 								|| nodes.get(i - j).nodeName.getInstruction() instanceof LDC) {
 
 							conditions.add(nodes.get(i - j).nodeName);
-							//System.out.println("Added "
-							//		+ nodes.get(i - j).nodeName
-							//		+ " to list of instructions j = " + j);
+							// System.out.println("Added "
+							// + nodes.get(i - j).nodeName
+							// + " to list of instructions j = " + j);
 
 							added = true;
 						} else {
@@ -341,7 +343,7 @@ public class CFG {
 
 		for (InstructionHandle con : conditions) {
 			varVal = new VariableValues();
-			//System.out.println("Instruction: " + con);
+			// System.out.println("Instruction: " + con);
 
 			if (con.getInstruction() instanceof BIPUSH) {
 				value = ((BIPUSH) con.getInstruction()).getValue();
@@ -351,6 +353,7 @@ public class CFG {
 				// System.out.println("BIPUSH value = " + value);
 			} else if (con.getInstruction() instanceof ICONST) {
 				value = ((ICONST) con.getInstruction()).getValue();
+				System.out.println("Value = " + value);
 				type = (((ICONST) con.getInstruction()).getType(constantPool))
 						.toString();
 				variableName = "AutoCreated";
@@ -360,11 +363,12 @@ public class CFG {
 						.getIndex();
 				type = ((LocalVariableInstruction) con.getInstruction())
 						.getType(constantPool).toString();
-				//System.out
-				//		.println(con + " defines variable at index: " + index);
+				// System.out
+				// .println(con + " defines variable at index: " + index);
 				for (org.apache.bcel.classfile.LocalVariable var : localVariables) {
 					if (var.getIndex() == index) {
-						//System.out.println("Variable Name: " + var.getName());
+						// System.out.println("Variable Name: " +
+						// var.getName());
 						variableName = var.getName();
 						break;
 					}
@@ -375,11 +379,12 @@ public class CFG {
 						.getIndex();
 				type = ((LocalVariableInstruction) con.getInstruction())
 						.getType(constantPool).toString();
-				//System.out
-				//		.println(con + " defines variable at index: " + index);
+				// System.out
+				// .println(con + " defines variable at index: " + index);
 				for (org.apache.bcel.classfile.LocalVariable var : localVariables) {
 					if (var.getIndex() == index) {
-						//System.out.println("Variable Name: " + var.getName());
+						// System.out.println("Variable Name: " +
+						// var.getName());
 						variableName = var.getName();
 						break;
 					}
@@ -392,20 +397,32 @@ public class CFG {
 				type = "String";
 
 			} else {
-				//System.out.println("No match: " + con);
+				// System.out.println("No match: " + con);
 			}
 
+			if (condition.getInstruction() instanceof IFEQ) {
+				if (condition.getPrev().getInstruction() instanceof INVOKEVIRTUAL) {
+					String mtName = ((INVOKEVIRTUAL) condition.getPrev().getInstruction())
+							.getMethodName(constantPool);
+					if (mtName.equalsIgnoreCase("isEmpty")) {
+						value = "EMPTY";
+						System.out.println("EMPTY VALUE");
+						//System.exit(0);
+					}
+				}
+			}
 			varVal.variableName = variableName;
 			varVal.type = type;
-
+			varVal.value = value;
+			System.out.println(variableName+" has the value: "+value);
 			if (varVal.type.equalsIgnoreCase("int") && varVal.value == null) {
-				//System.out.println("Making "+varVal.variableName+" = 0");
+				// System.out.println("Making "+varVal.variableName+" = 0");
 				varVal.value = 0;
 			}
-
+			
 			variables.add(varVal);
 		}
-		
+
 		if (variables.size() == 1) {
 			if (condition.getInstruction() instanceof IFNONNULL) {
 				variables.get(0).value = "Not Null";
@@ -423,7 +440,6 @@ public class CFG {
 				var.variableName = "AutoCreated";
 				variables.add(var);
 
-
 			} else {
 				variables.get(0).value = value;
 				VariableValues var = new VariableValues();
@@ -435,7 +451,6 @@ public class CFG {
 			}
 
 		}
-		
 
 		return variables;
 	}
@@ -515,14 +530,15 @@ public class CFG {
 			if (dep.getInstruction() instanceof IfInstruction) {
 				IfInstruction condition = (IfInstruction) dep.getInstruction();
 
-				condition = (IfInstruction) condition;
-				// DependencyInformation dependency = new DependencyInformation();
+				// condition = (IfInstruction) condition;
+				// DependencyInformation dependency = new
+				// DependencyInformation();
 				dependency.dependencyNode = dep;
 				if (dep.getPosition() > lineNumber) { // If branch from a loop
 					if (condition.getTarget().getPosition() < lineNumber) {
-						dependency.true_false = true;
-					} else {
 						dependency.true_false = false;
+					} else {
+						dependency.true_false = true;
 					}
 				} else { // Regular if branch
 					if (condition.getTarget().getPosition() > lineNumber) {
@@ -531,14 +547,15 @@ public class CFG {
 						dependency.true_false = false;
 					}
 				}
-				ArrayList<VariableValues> varVal = getVariablesForCondition(dep, table,
-						nodes, constantPool);
+				ArrayList<VariableValues> varVal = getVariablesForCondition(
+						dep, table, nodes, constantPool);
 				dependency.variables = varVal;
-				//dependencyList.add(dependency);
+				// dependencyList.add(dependency);
 			} else if (dep.getInstruction() instanceof org.apache.bcel.generic.TABLESWITCH) {
 				org.apache.bcel.generic.TABLESWITCH condition = (org.apache.bcel.generic.TABLESWITCH) dep
 						.getInstruction();
-				// DependencyInformation dependency = new DependencyInformation();
+				// DependencyInformation dependency = new
+				// DependencyInformation();
 				dependency.dependencyNode = dep;
 				if (dep.getPosition() > lineNumber) { // If branch from a loop
 					if (condition.getTarget().getPosition() < lineNumber) {
@@ -553,16 +570,17 @@ public class CFG {
 						dependency.true_false = false;
 					}
 				}
-				ArrayList<VariableValues> varVal = getVariablesForCondition(dep, table,
-						nodes, constantPool);
+				ArrayList<VariableValues> varVal = getVariablesForCondition(
+						dep, table, nodes, constantPool);
 				dependency.variables = varVal;
 				// dependencyList.add(dependency);
-				
+
 			}
 			String symbol = "";
 			if (dep.getInstruction() instanceof IFEQ) {
 				symbol = "=";
-			} else if (dep.getInstruction() instanceof IFNE) {
+			} else if (dep.getInstruction() instanceof IFNE
+					|| dep.getInstruction() instanceof IF_ICMPNE) {
 				symbol = "!=";
 			} else if (dep.getInstruction() instanceof IF_ICMPEQ) {
 				symbol = "=";
@@ -735,7 +753,7 @@ public class CFG {
 			// }
 			// }
 			if (mainMethod == null) {
-				//System.out.println("No entry method found in " + path + ".");
+				// System.out.println("No entry method found in " + path + ".");
 				break;// System.exit(1);
 			}
 
@@ -1007,7 +1025,7 @@ public class CFG {
 					if (cfg_graph.edges.get(i).get(0).getPosition() > cfg_graph.edges
 							.get(i).get(0).getPosition()) {
 						cfg_graph.edges.remove(i);
-						//System.out.println("Edge Removed");
+						// System.out.println("Edge Removed");
 					}
 				}
 			}

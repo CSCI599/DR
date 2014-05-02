@@ -1,9 +1,13 @@
 package com.csci599.project;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -27,7 +31,7 @@ import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils.Collections;
 public class Runner {
 
 	public static void main(String[] args) throws IOException {
-
+		
 		if (args.length < 2) {
 			System.out.println("Expected 2 arguments");
 			System.out.println("1. Path to class folder");
@@ -43,7 +47,7 @@ public class Runner {
 
 		// System.out.println("CFG Size: " + graphs.size());
 		int i = 1;
-		String methodName = "Recommended_Show";
+		String methodName = "RegAction";
 		CFG_Graph mainGraph = new CFG_Graph();
 		for (CFG_Graph graph : graphs) {
 			if (graph.method.getName().equalsIgnoreCase(methodName)) {
@@ -129,16 +133,24 @@ public class Runner {
 			}
 		}
 
-		/*
-		 * System.out.println("Basic Block Details"); for (BasicBlock block :
-		 * basicBlocks) { System.out.println("Block Number: " +
-		 * block.blockNumber); System.out.print("\nStart: " + block.start +
-		 * " End: " + block.end + "\n"); System.out.println("Parents : "); for
-		 * (BasicBlock par : block.parents) { System.out.print(par.start +
-		 * ", "); } //System.out.println; System.out.println("Children : "); for
-		 * (BasicBlock child : block.children) { System.out.print(child.start +
-		 * ", "); } //System.out.println; }
-		 */
+		System.out.println("Basic Block Details");
+		for (BasicBlock blocks : basicBlocks) {
+			System.out.println("Block Number: " + blocks.blockNumber);
+			System.out.print("\nStart: " + blocks.start + " End: " + blocks.end
+					+ "\n");
+			System.out.println("Parents : ");
+			for (BasicBlock par : blocks.parents) {
+				System.out.print(par.start + ", ");
+
+			}
+			System.out.println();
+			System.out.println("Children : ");
+			for (BasicBlock child : blocks.children) {
+				System.out.print(child.start + ", ");
+			}
+			// System.out.println; }
+
+		}
 		ArrayList<ArrayList<BasicBlock>> blockEdges = new ArrayList<ArrayList<BasicBlock>>();
 		for (BasicBlock block : basicBlocks) {
 			if (block.children.size() != 0) {
@@ -199,19 +211,36 @@ public class Runner {
 		ControlDependency cDep = new ControlDependency();
 		mainGraph.basicBlocks = cDep.getControlDependencyBlocks(mainGraph);
 
-		/*
-		 * for (BasicBlock node : mainGraph.basicBlocks) {
-		 * System.out.println("\nBlock: " + node.start +
-		 * " is control dependent on " + node.controlDependencyList.size() +
-		 * " blocks: "); for (BasicBlock domi : node.controlDependencyList) {
-		 * System.out.print(domi.start + " , "); } //System.out.println;
-		 * 
-		 * }
-		 */
+		for (BasicBlock node : mainGraph.basicBlocks) {
+			ArrayList<BasicBlock> controllers = new ArrayList<BasicBlock>();
+			if (node.controlDependencyList.size() != 0) {
+				for (BasicBlock controllerNode : node.controlDependencyList) {
+					controllers.addAll(controllerNode.controlDependencyList);
+				}
+			}
+
+			node.controlDependencyList.addAll(controllers);
+			HashSet hs = new HashSet();
+			hs.addAll(node.controlDependencyList);
+			node.controlDependencyList.clear();
+			node.controlDependencyList.addAll(hs);
+
+		}
+
+		for (BasicBlock node : mainGraph.basicBlocks) {
+			System.out.println("\nBlock: " + node.start
+					+ " is control dependent on "
+					+ node.controlDependencyList.size() + " blocks: ");
+			for (BasicBlock domi : node.controlDependencyList) {
+				System.out.print(domi.start + " , ");
+			} // System.out.println;
+
+		}
+
 		// System.exit(0);
 
 		int pos = -1;
-		int sourceLineNumber = 523;
+		int sourceLineNumber = 493;
 		for (int key : mainGraph.byteCode_to_sourceCode_mapping.keySet()) {
 			if (mainGraph.byteCode_to_sourceCode_mapping.get(key) == sourceLineNumber) {
 				pos = key;
@@ -379,6 +408,7 @@ public class Runner {
 		System.out.println("Line " + sourceLineNumber + " depends on : "
 				+ depList.size() + " conditions");
 		System.out.println();
+		SortedMap<String, String> ext_var_values = new TreeMap<String, String>();
 
 		for (DependencyInformation dep : depList) {
 			// System.out.println;
@@ -391,18 +421,61 @@ public class Runner {
 			System.out.println("Must evaluate to : " + dep.true_false);
 			System.out.println("For instruction to be TRUE: ");
 
-			System.out.print("Variable : " + dep.variables.get(0).variableName
-					+ " (" + dep.variables.get(0).type + ") " + dep.symbol
-					+ " ");
+			System.out.println("Variable: ");
+			// System.out.print("Variable : " +
+			// dep.variables.get(0).variableName
+			// + " (" + dep.variables.get(0).type + ") ");
 
-			if (dep.variables.get(1).variableName
+			String value = "";
+			String variable_name = "";
+
+			if (dep.variables.get(0).variableName
 					.equalsIgnoreCase("AutoCreated")) {
-				System.out.println(dep.variables.get(1).value);
+				System.out.println("(VALUE = " + dep.variables.get(0).value
+						+ " )");
 			} else {
-				System.out.println(dep.variables.get(1).variableName + " ("
-						+ dep.variables.get(1).type + ") ");
+				System.out.println(dep.variables.get(0).variableName + " ("
+						+ dep.variables.get(0).type + ") ");
 			}
 
+			System.out.println(dep.symbol + " ");
+
+			if (!dep.variables.get(1).variableName.equalsIgnoreCase("this")) {
+				if (!dep.variables.get(1).variableName
+						.equalsIgnoreCase(dep.variables.get(0).variableName)) {
+					if (dep.variables.get(1).variableName
+							.equalsIgnoreCase("AutoCreated")) {
+						System.out.println(dep.variables.get(1).value);
+					} else {
+						System.out.println(dep.variables.get(1).variableName
+								+ " (" + dep.variables.get(1).type + ") ");
+						value = dep.variables.get(1).value.toString();
+
+					}
+				}
+			} else {
+				System.out.println(dep.variables.get(0).value);
+				value = dep.variables.get(0).value.toString();
+			}
+
+			System.out.println("-----------------");
+
+			if (int_ext_var.keySet()
+					.contains(dep.variables.get(0).variableName)) {
+				System.out
+						.println(int_ext_var.get(dep.variables.get(0).variableName)
+								+ " must have the value: " + value);
+				variable_name = int_ext_var
+						.get(dep.variables.get(0).variableName);
+			} else if (int_ext_var.keySet().contains(
+					dep.variables.get(1).variableName)) {
+				System.out
+						.println(int_ext_var.get(dep.variables.get(1).variableName)
+								+ " must have the value: " + value);
+				variable_name = int_ext_var
+						.get(dep.variables.get(1).variableName);
+
+			}
 			int loc = dep.dependencyNode.getPosition();
 
 			cfg.generateReachingDef(mainGraph.localVariableTable,
@@ -410,17 +483,25 @@ public class Runner {
 
 			Nodes node1 = mainGraph.nodesMap.get(loc);
 			boolean isOutisdeDefn = true;
-
+			if (!variable_name.equalsIgnoreCase("")) {
+				ext_var_values.put(variable_name, value);
+			}
 			for (Definition def : node1.out) {
 				for (VariableValues var : dep.variables) {
 					if (def.getVarName().equalsIgnoreCase(var.variableName)
 							&& (!def.isOutsideDef())) {
 						isOutisdeDefn = false;
+						if (int_ext_var.keySet().contains(var.variableName)) {
+							System.out.println(var.variableName
+									+ " depends on external variable "
+									+ int_ext_var.get(var.variableName));
+						}
 						System.out
 								.println(var.variableName
-										+ " is not an external variable. It is initialized/modified at position: "
+										+ " is not an external variable. It is initialized/modified at line: "
 										+ mainGraph.byteCode_to_sourceCode_mapping
 												.get(def.getLine()));
+
 					}
 				}
 			}
@@ -429,7 +510,28 @@ public class Runner {
 		}
 		System.out.println("From ----> To");
 		for (String key : int_ext_var.keySet()) {
+
 			System.out.println(int_ext_var.get(key) + "---->" + key);
 		}
+
+		TestCaseParser tcParser = new TestCaseParser();
+
+		for (String key : ext_var_values.keySet()) {
+			String var_name = key;
+			String var_val = "";
+			System.out.print("\n" + key + " must have the value ");
+			if (ext_var_values.get(key).equalsIgnoreCase("empty")) {
+				System.out.print("");
+				var_val = "";
+			} else {
+				System.out.print(ext_var_values.get(key));
+				var_val = ext_var_values.get(key);
+			}
+			tcParser.parseTestCase("Tests/Sample", "name=" + var_name, var_val);
+			
+
+		}
+
+		// System.exit(0);
 	}
 }
