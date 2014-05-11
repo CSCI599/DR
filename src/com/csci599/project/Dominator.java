@@ -399,30 +399,11 @@ public class Dominator {
 
 	public CFG_Graph getDominatorTreeForCFGBlocks(CFG_Graph cfg) {
 
-		/*
-		 * Nodes entry = new Nodes("Entry"); entry.children = new
-		 * ArrayList<Nodes>(); entry.children.add(cfg.nodes.get(0));
-		 * entry.dominators = new ArrayList<Nodes>();
-		 * entry.dominators.add(entry); Nodes exit = new Nodes("Exit");
-		 * exit.parents = new ArrayList<Nodes>(); exit.dominators = new
-		 * ArrayList<Nodes>(); exit.children = new ArrayList<Nodes>();
-		 */
-
+		
 		// Prepare N
 		ArrayList<BasicBlock> N = new ArrayList<BasicBlock>();
 		N.addAll(cfg.basicBlocks);
-		// N.add(exit);
-		/*
-		 * cfg.nodes.get(cfg.nodes.size() - 1).children = new
-		 * ArrayList<Nodes>();
-		 * 
-		 * cfg.nodes.get(cfg.nodes.size() - 1).children.add(exit);
-		 * cfg.nodesMap.remove(cfg.nodes.get(cfg.nodes.size() - 1).nodeName
-		 * .getPosition()); cfg.nodesMap.put( cfg.nodes.get(cfg.nodes.size() -
-		 * 1).nodeName.getPosition(), cfg.nodes.get(cfg.nodes.size() - 1));
-		 * 
-		 * N.get(0).parents.add(entry);
-		 */
+	
 
 		ArrayList<BasicBlock> searchQueue = new ArrayList<BasicBlock>();
 
@@ -469,7 +450,6 @@ public class Dominator {
 				BasicBlock n = searchQueue.get(0);
 
 				if (n.visited || n == null) {
-					// System.out.println("VISITED_Removed: "+searchQueue.get(0).start);
 					searchQueue.remove(0);
 
 					continue;
@@ -477,20 +457,13 @@ public class Dominator {
 
 				if (n.parents == null || n.parents.size() == 0) {
 					n.visited = true;
-					// System.out.println("No parents for: "+searchQueue.get(0).start);
-					// System.out.println("NO_PARENTS_Removed: "+searchQueue.get(0).start);
+				
 					searchQueue.remove(0);
 				} else if (n.parents.size() == 1) {
 					T.clear();
-					// ArrayList<BasicBlock> doms = n.parents.get(0).dominators;
-					// System.out.println("Adding dominators to T ONE PARENT for "+searchQueue.get(0).start);
-					// System.out.println("Parent: "+searchQueue.get(0).parents.get(0).start);
-					// System.out.println("Children: "+searchQueue.get(0).children.size());
-
+				
 					T.addAll(n.parents.get(0).dominators);
 				} else {
-					// System.out.println("MORE THAN ONE PARENT");
-
 					ArrayList<BasicBlock> parents = new ArrayList<BasicBlock>();
 					ArrayList<ArrayList<BasicBlock>> dominators_of_parents = new ArrayList<ArrayList<BasicBlock>>();
 
@@ -521,12 +494,8 @@ public class Dominator {
 				ArrayList<BasicBlock> children = new ArrayList<BasicBlock>();
 
 				for (BasicBlock child : n.children) {
-					// System.out.println("Adding children");
-					// if (child.name.equalsIgnoreCase("exit")) {
-					// children.add(exit);
-					// } else
+					
 					if (child != null) {
-						// System.out.println("Added "+child.start);
 						children.add(cfg.basicBlockMap.get(child.start));
 					}
 				}
@@ -535,7 +504,6 @@ public class Dominator {
 
 				// Mark Node as visited
 				n.visited = true;
-				// System.out.println("Removed: "+searchQueue.get(0).start);
 				searchQueue.remove(0);
 
 				// Compare T and dominatorNodes

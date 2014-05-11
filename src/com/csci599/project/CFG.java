@@ -353,7 +353,6 @@ public class CFG {
 				// System.out.println("BIPUSH value = " + value);
 			} else if (con.getInstruction() instanceof ICONST) {
 				value = ((ICONST) con.getInstruction()).getValue();
-				System.out.println("Value = " + value);
 				type = (((ICONST) con.getInstruction()).getType(constantPool))
 						.toString();
 				variableName = "AutoCreated";
@@ -391,8 +390,7 @@ public class CFG {
 				}
 			} else if (con.getInstruction() instanceof LDC) {
 				value = ((LDC) con.getInstruction()).getValue(constantPool);
-				System.out.println("LDC Instruction: " + con + " value = "
-						+ value);
+	
 				variableName = "AutoCreated";
 				type = "String";
 
@@ -406,7 +404,6 @@ public class CFG {
 							.getMethodName(constantPool);
 					if (mtName.equalsIgnoreCase("isEmpty")) {
 						value = "EMPTY";
-						System.out.println("EMPTY VALUE");
 						//System.exit(0);
 					}
 				}
@@ -414,9 +411,7 @@ public class CFG {
 			varVal.variableName = variableName;
 			varVal.type = type;
 			varVal.value = value;
-			System.out.println(variableName+" has the value: "+value);
 			if (varVal.type.equalsIgnoreCase("int") && varVal.value == null) {
-				// System.out.println("Making "+varVal.variableName+" = 0");
 				varVal.value = 0;
 			}
 			

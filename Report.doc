@@ -1,69 +1,43 @@
 Setup:
 
-Git Repository link: https://github.com/CSCI599/CSCI599Project
+Git Repository link: https://github.com/CSCI599/DR
+
 Java version: 7
 External libraries: BCEL, Cobertura (along with any other dependency they might have).
 
 Running:
 
-The java file MainClass.java is the starting point of the analysis.
+The Java file Runner.java is the starting point of the analysis.
 
-It expects 4 arguments:
+It expects 3 arguments:
 
-1. Line number to run
-2. Path to class file
-3. Name of class file (without .class extension)
-4. Name of the method
+1. Path to .class file
+2. Path to generate the dotty file for the CFG.
+3. Line number to run
 
-We have used Condition.java as the file we want to run the analysis on. It is a simple java file with several if statements in it.
-The analysis might not work properly on very complex classes since we were not able to include all types of "IF" comparisons.
-
+The “Bookstore" application was used as a sample application for this project.
 Understanding the output:
 
 The output contains: 
 
-1) Total nodes in the CFG
-2) Number of nodes which can reach the given line number
-3) Conditions that the line number depends on 
-4) Some detailed information about the conditions like source line number, variable and its expected value etc.
+1) Location of dotty file.
+2) Conditions that the line number depends on 
+3) Some detailed information about the conditions like source line number, variable and its expected value etc.
 
 
 Approach:
 
-1) Prepare CFG and reachability information (similar to the ICAs)
-2) Find the conditions (IF statements in byte code) on which a particular node depends on. This is done as follows:
+1) Prepare CFG and reachability information 
+2) Find the conditions (IF statements in byte code) on which a particular node depends on. This is done by determining control dependency for each node (as described in the Jeanne Ferrante et al Algorithm):
 
-* Find all branch statements that can reach the given node.
-* The above set of branch statements may contain several conditions which do not affect the node we want to execute. There were two scenarios that we thought of:
-
-I Always executed conditions
-
-(i) Lets say statements B1, B2, ...., Bn are branch statements that can reach node N.
-(ii) N is a child of node Bn.
-(iii) The flow is such that node Bn will always be executed.
-(iv) In this case even though B1...Bn-1 can reach N, the execution of N depends only on node Bn. 
-So we remove all branches before Bn from the set of branches that can affect N.
-
-II Paths that always reach a given node.
-
-(i) Lets say we want to execute a node N.
-(ii) The location of N in the CFG is such that all paths will eventually reach it. In this case N is independent of any condition.
-(iii) We can extend the above logic to determine the sub branches that N may be independent of:
-Assume that branch B1 has two children: B2, B3.
-B3 itself has two children: B4, B5.
-Both B4 and B5 terminate at node N.
-Here we can see that all paths from B3 will eventually reach N. So N is independent of B3.
-However, N is not independent of B1.
-
-Using this approach we determined the conditions on which a given node depends on.
 
 3) The next step is to determine the variables on which a given condition depends on. 
 This is a complex step in terms of determining the value that a condition expects to be true. 
 This is because there can be different types of IF comparisons involving different types of data types.
-We concentrated on baisc integer and string comparisons.
-From the byte code, we determined the instructions that were loaded befor the IF statement.
+I concentrated on basic integer and string comparisons.
+From the byte code, I found the instructions that were loaded before the IF statement.
 These instructions load the variables and constants required for the comparison.
-From the LocalVariableTable we determine the name and value of these variables.
+From the LocalVariableTable I determine the name and value of these variables.
 
 4) calculate reaching definition: Verify that the variable is obtained from "outside" and is not modified within the code.
 If it is modified, mark the variable.
@@ -90,295 +64,90 @@ While (Changes to any out[] occur) {
 5) Print output: Print the line numbers, conditions, variables (and their expected value if possible) that the given node depends on.
 If the variable was "Marked" in the reaching definition as modified in the code, display a message saying that the variable was modified in the code (with the line number where it was modified).
 
-<<<<<<< HEAD
-
-=======
->>>>>>> f78c083d5d79ee31bfa177c07803ef3bbf5e0a52
 Evaluation:
 
-We have experimented our implementation using the following application:
+I had used the Bookstore application for evaluation purposes (specifically, the Registration_jsp.java file)
 
-======================================================
-package com.csci599.project;
+If the input to the application contains line number “493“ as the line to run, the output is as follows:
 
+Parsing classes/Registration_jsp.class.
+Dotty File generated at: classes/
+Line 493 depends on : 3 conditions
 
+Instruction:  314: if_icmpeq[159](3) -> aload_0(at source line number: 491)
+Must evaluate to : false
+For instruction to be TRUE: 
+Variable: 
+(VALUE = 1 )
+= 
+iAction (int) 
+-----------------
+iAction is not an external variable. It is initialized/modified at line: 457
+iAction is not an external variable. It is initialized/modified at line: 459
+iAction is not an external variable. It is initialized/modified at line: 460
+iAction is not an external variable. It is initialized/modified at line: 461
 
-public class Condition {
-
-<<<<<<< HEAD
-	public static void main(String[] args) {
-		int n = 10000;
-		n = n + 4;
-		int a = Integer.parseInt(args[0]), b = Integer.parseInt(args[1]), c = Integer
-				.parseInt(args[2]), d = Integer.parseInt(args[3]), e = Integer
-				.parseInt(args[4]), f = Integer.parseInt(args[5]), g = Integer
-				.parseInt(args[6]), h = Integer.parseInt(args[7]);
-		String x1 = "xy";
-		if (b == 3 && c == a && x1.equalsIgnoreCase("xy")) {
-			if (d == 5) {
-				if (a == 6) {
-					System.out.println("A = 6");
-				}
-				if (a == 7) {
-					System.out.println("A != 6");
-					System.out.println("This is the line to execute");
-				}
-			} else {
-				if (a == 7) {
-					System.out.println("A = 7");
-				} else {
-					System.out.println("A != 7");
-				}
-			}
-		} else {
-			if (e == 8) {
-				System.out.println("E = 8");
-			} else {
-				System.out.println("E != 8");
-			}
-		}
-
-		if (f >= 3 && g <= 4) {
-			if (h == 5) {
-				e = n + 1 * (a / 4);
-				if (e == 6) {
-					System.out.println("E = 6");
-				} else {
-					System.out.println("E != 6");
-				}
-			} else {
-				if (e == 7) {
-					System.out.println("E = 7");
-				} else {
-					System.out.println("E != 7");
-				}
-			}
-		} else {
-			if (e == 8) {
-				System.out.println("E = 8");
-			} else {
-				System.out.println("E != 8");
-			}
-		}
-		System.out.println("Start of WHILE Loop");
-		int x = 1;
-		while (x < 10) {
-			System.out.println("This is X WHILE: " + x);
-			x++;
-		}
-
-		x = 1;
-		System.out.println("Start of DO WHILE Loop");
-		do {
-			System.out.println("This is X DO WHILE: " + x);
-			x++;
-		} while (x < 10);
-
-		System.out.println("Start of FOR Loop");
-		for (x = 1; x < 10; x++) {
-			System.out.println("This is X FOR: " + x);
-			if (x == 8) {
-				break;
-			}
-		}
-		System.out.println("This is the end");
-	}
-=======
-public static void main(String[] args) {
-int n = 10000;
-n = n + 4;
-int a = Integer.parseInt(args[0]), b = Integer.parseInt(args[1]), c = Integer
-.parseInt(args[2]), d = Integer.parseInt(args[3]), e = Integer
-.parseInt(args[4]), f = Integer.parseInt(args[5]), g = Integer
-.parseInt(args[6]), h = Integer.parseInt(args[7]);
-String x1 = "xy";
-if (b == 3 && c == a && x1.equalsIgnoreCase("xy")) {
-if (d == 5) {
-if (a == 6) {
-System.out.println("A = 6");
-}
-if (a == 7) {
-System.out.println("A != 6");
-System.out.println("This is the line to execute");
-}
-} else {
-if (a == 7) {
-System.out.println("A = 7");
-} else {
-System.out.println("A != 7");
-}
-}
-} else {
-if (e == 8) {
-System.out.println("E = 8");
-} else {
-System.out.println("E != 8");
-}
-}
-
-if (f >= 3 && g <= 4) {
-if (h == 5) {
-e = n + 1 * (a / 4);
-if (e == 6) {
-System.out.println("E = 6");
-} else {
-System.out.println("E != 6");
-}
-} else {
-if (e == 7) {
-System.out.println("E = 7");
-} else {
-System.out.println("E != 7");
-}
-}
-} else {
-if (e == 8) {
-System.out.println("E = 8");
-} else {
-System.out.println("E != 8");
-}
-}
-System.out.println("Start of WHILE Loop");
-int x = 1;
-while (x < 10) {
-System.out.println("This is X WHILE: " + x);
-x++;
-}
-
-x = 1;
-System.out.println("Start of DO WHILE Loop");
-do {
-System.out.println("This is X DO WHILE: " + x);
-x++;
-} while (x < 10);
-
-System.out.println("Start of FOR Loop");
-for (x = 1; x < 10; x++) {
-System.out.println("This is X FOR: " + x);
-if (x == 8) {
-break;
-}
-}
-System.out.println("This is the end");
-}
->>>>>>> f78c083d5d79ee31bfa177c07803ef3bbf5e0a52
-}
-
-======================================================
-
-Our goal is to execute line 22, which contains instruction "System.out.println("This is the line to execute");"
-
-To analyze the above class we run the analysis using the following command:
-
-java -cp ./bin:./bcel-5.2.jar com.csci599.project.MainClass 22 bin/com/csci599/project/ Condition main
-
-<<<<<<< HEAD
-This is the output of the analysis: 
-=======
-This is the output of the analysis: 
->>>>>>> f78c083d5d79ee31bfa177c07803ef3bbf5e0a52
-
-======================================================
-Total Nodes: 208
-1 independent conditions out of 6
-135(line number 22) can be reached by 73 other nodes
-<<<<<<< HEAD
-Node at position 135 depends on the following conditions 
-Total dependency conditions: 5
-
- 119: if_icmpne[160](3) -> iload 7
-  99: if_icmpne[160](3) -> iload_2
-  93: ifeq[153](3) -> iload 6
-  83: if_icmpne[160](3) -> iload 6
-  77: if_icmpne[160](3) -> iload 6
-
-Conditions: 
-
-Instruction:  119: if_icmpne[160](3) -> iload 7
-=======
-Node at position 135 depends on the following conditions 
-Total dependency conditions: 5
-
-119: if_icmpne[160](3) -> iload 7
-  99: if_icmpne[160](3) -> iload_2
-  93: ifeq[153](3) -> iload 6
-  83: if_icmpne[160](3) -> iload 6
-  77: if_icmpne[160](3) -> iload 6
-
-Conditions: 
-
-Instruction:  119: if_icmpne[160](3) -> iload 7
->>>>>>> f78c083d5d79ee31bfa177c07803ef3bbf5e0a52
+Instruction:  320: if_icmpne[160](3) -> ldc 86(at source line number: 491)
 Must evaluate to : true
-Depends on variable: a
-For instruction to be TRUE, a must be : 7
-Source code line number: 20
+For instruction to be TRUE: 
+Variable: 
+(VALUE = 2 )
+!= 
+iAction (int) 
+-----------------
+iAction is not an external variable. It is initialized/modified at line: 457
+iAction is not an external variable. It is initialized/modified at line: 459
+iAction is not an external variable. It is initialized/modified at line: 460
+iAction is not an external variable. It is initialized/modified at line: 461
 
-
-<<<<<<< HEAD
-Instruction:   99: if_icmpne[160](3) -> iload_2
-=======
-Instruction:   99: if_icmpne[160](3) -> iload_2
->>>>>>> f78c083d5d79ee31bfa177c07803ef3bbf5e0a52
+Instruction:  329: ifeq[153](3) -> aload_0(at source line number: 492)
 Must evaluate to : true
-Depends on variable: d
-For instruction to be TRUE, d must be : 5
-Source code line number: 16
+For instruction to be TRUE: 
+Variable: 
+fldmember_login (java.lang.Object) 
+= 
+EMPTY
+-----------------
+member_login must have the value: EMPTY
+fldmember_login depends on external variable member_login
+fldmember_login is not an external variable. It is initialized/modified at line: 480
 
 
-<<<<<<< HEAD
-Instruction:   93: ifeq[153](3) -> iload 6
-=======
-Instruction:   93: ifeq[153](3) -> iload 6
->>>>>>> f78c083d5d79ee31bfa177c07803ef3bbf5e0a52
-Must evaluate to : true
-Depends on variable: x1
-For instruction to be TRUE, x1 must be : xy
-Source code line number: 15
-The variable x1 does not come from outside. It is redefined at position: 73
+member_login must have the value Generating new test case
+title : Sample
+Generated new test case Tests/Sample_2014-05-10 18:02:52
 
 
-<<<<<<< HEAD
-Instruction:   83: if_icmpne[160](3) -> iload 6
-=======
-Instruction:   83: if_icmpne[160](3) -> iload 6
->>>>>>> f78c083d5d79ee31bfa177c07803ef3bbf5e0a52
-Must evaluate to : true
-Depends on variable: c
-For instruction to be TRUE, c must be : a
-Source code line number: 15
 
+The output contains the conditions on which the given line depends upon, as well as some variable information.
+The main goal here was to determine client side actions which affect execution of a certain line. Hence, those variables which were declared locally within the application were not analyzed in detail. Instead, the analysis gives a message saying that the variable is not external.
 
-<<<<<<< HEAD
-Instruction:   77: if_icmpne[160](3) -> iload 6
-=======
-Instruction:   77: if_icmpne[160](3) -> iload 6
->>>>>>> f78c083d5d79ee31bfa177c07803ef3bbf5e0a52
-Must evaluate to : true
-Depends on variable: b
-For instruction to be TRUE, b must be : 3
-Source code line number: 15
-======================================================
+Variable: 
+(VALUE = 1 )
+= 
+iAction (int)
 
-As can be implied from the output, the following conditions need to be satisfied to successfully execute line 22 :
+This means that the variable iAction should have the value 1.
 
-<<<<<<< HEAD
-1. a == 7 
-=======
-1. a == 7 
->>>>>>> f78c083d5d79ee31bfa177c07803ef3bbf5e0a52
-2. d == 5
-3. x1 == "xy"
-4. c == a
-5. b == 3
+To determine external variables, I searched for “getParam” calls. The variables which were external (and unmodified) were further analyzed. For eg.,
+fldmember_login (java.lang.Object) 
+= 
+EMPTY
+-----------------
+member_login must have the value: EMPTY
+fldmember_login depends on external variable member_login
 
-(note that x1 is defined inside the application and not passed as an argument)
+This means that fldmember_login should be “Empty” (or “”).
 
-So running class Condition with the following arguments will NOT cover line 22:
-java -cp target:./lib/cobertura.jar com.csci599.project.Condition 7 3 5 5 0 0 0 0
+This information was used to prepare new test cases from existing one. However, this functionality needs a lot of improvement. 
+A Selenium test case is parsed and searched for the required external variable. Once found, the desired value is “plugged” in, and the new test case is created.
 
-However, after reading the analysis report and changing the arguments, this command will cover line 22:
-java -cp target:./lib/cobertura.jar com.csci599.project.Condition 7 3 7 5 0 0 0 0
+Further areas of improvement:
 
-See case-a and case-b coverage reports located in cobertura/reports directory.
+1) The Bookstore application did not have a lot of Tableswitch cases. The analysis covers some portions of Tableswitch cases, but may not function properly on complex applications.
 
+2) Parsing test cases and generating new ones. Currently, the name and path to the Selenium test case is hard-coded. 
+
+(tcParser.parseTestCase("Tests/Sample", "name=" + var_name, var_val);)
+
+This can later be modified to be accepted as a command line argument, once the desired functionality is working properly.
